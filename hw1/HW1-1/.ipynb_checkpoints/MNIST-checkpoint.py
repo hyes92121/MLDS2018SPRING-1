@@ -1,4 +1,10 @@
-import argparse
+import argparse, json
+from pprint import pprint
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+
+import tensorflow as tf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,7 +19,7 @@ parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=10, metavar='N',
+parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 10)')
 parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                     help='learning rate (default: 0.01)')
@@ -48,10 +54,9 @@ test_loader = torch.utils.data.DataLoader(
                    ])),
     batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-
-class Net(nn.Module):
+class CNN_2FC(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(CNN_2FC, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d() # p=0.5 by default
@@ -67,7 +72,10 @@ class Net(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-model = Net()
+model = CNN_2FC()
+model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+num_params = sum([np.prod(p.size()) for p in model_parameters])
+print(num_params)
 if args.cuda:
     model.cuda()
 
@@ -78,9 +86,11 @@ def train(epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         if args.cuda:
             data, target = data.cuda(), target.cuda()
+        print('data, target now cuda()')
         data, target = Variable(data), Variable(target) # not storing gradients
         optimizer.zero_grad()
         output = model(data)
+        print('forward pass successful!')
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -131,8 +141,8 @@ def test(epoch):
         test_loss, correct, len(test_loader.dataset),
         100. * test_accuracy))
     
-    writer.export_scalars_to_json("./all_scalars.json")
-
+    writer.export_scalars_to_json("./CNN_2FC.json")
+    
 writer = SummaryWriter()
 for epoch in range(1, args.epochs + 1):
     train(epoch)
