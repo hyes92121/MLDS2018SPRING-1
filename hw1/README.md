@@ -1,1 +1,1 @@
-# Please check subdirectories for answers to HW1 questions
+# Please check subdirectories for HW1 code
