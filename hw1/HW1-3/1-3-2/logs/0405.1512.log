@@ -1,5 +1,0 @@
-2018-04-05 15:12 - MyLogger.__main__ - INFO - Start Training MnistCNN_8
-2018-04-05 15:12 - MyLogger.__main__ - INFO - Model parameter numbers: 800
-2018-04-05 15:12 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: -0.104162
-2018-04-05 15:13 - MyLogger.trainer - INFO - Training Epoch: 2 [11328/60000 (99%)]	Loss: -0.159864
-2018-04-05 15:13 - MyLogger.trainer - INFO - Training Epoch: 3 [11328/60000 (99%)]	Loss: -0.248664

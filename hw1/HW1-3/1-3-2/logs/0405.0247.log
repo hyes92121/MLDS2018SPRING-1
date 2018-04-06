@@ -1,5 +1,0 @@
-2018-04-05 02:47 - MyLogger.__main__ - INFO - Start Training MnistDNN_0
-2018-04-05 02:47 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: 1.008628
-2018-04-05 02:47 - MyLogger.__main__ - INFO - Start Training MnistDNN_0
-2018-04-05 02:47 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: 1.158333
-2018-04-05 02:47 - MyLogger.trainer - INFO - Training Epoch: 2 [11328/60000 (99%)]	Loss: 0.643571

@@ -1,4 +1,0 @@
-2018-04-05 02:55 - MyLogger.__main__ - DEBUG - Creating MnistDNN instance
-2018-04-05 02:55 - MyLogger.__main__ - INFO - Start Training MnistDNN_1000
-2018-04-05 02:55 - MyLogger.__main__ - INFO - Model parameter numbers: 33985
-2018-04-05 02:55 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: 2.280277

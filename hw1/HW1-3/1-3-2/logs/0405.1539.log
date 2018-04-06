@@ -1,9 +1,0 @@
-2018-04-05 15:39 - MyLogger.__main__ - INFO - Start Training MnistCNN_8
-2018-04-05 15:39 - MyLogger.__main__ - INFO - Model parameter numbers: 800
-2018-04-05 15:39 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: 2.266032
-2018-04-05 15:39 - MyLogger.trainer - INFO - Training Epoch: 2 [11328/60000 (99%)]	Loss: 2.155853
-2018-04-05 15:39 - MyLogger.trainer - INFO - Training Epoch: 3 [11328/60000 (99%)]	Loss: 1.731224
-2018-04-05 15:40 - MyLogger.trainer - INFO - Training Epoch: 4 [11328/60000 (99%)]	Loss: 1.459996
-2018-04-05 15:40 - MyLogger.__main__ - INFO - Finished training MnistCNN_8  Time elapsed:  59.797 seconds. 
-
-2018-04-05 15:40 - MyLogger.__main__ - INFO - Finished training all models. Dumping loss history
