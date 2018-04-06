@@ -1,0 +1,4 @@
+2018-04-05 03:15 - MyLogger.__main__ - DEBUG - Creating MnistDNN instance
+2018-04-05 03:15 - MyLogger.__main__ - DEBUG - Creating MnistDNN instance
+2018-04-05 03:15 - MyLogger.__main__ - INFO - Start Training MnistDNN_1000
+2018-04-05 03:15 - MyLogger.__main__ - INFO - Model parameter numbers: 284730

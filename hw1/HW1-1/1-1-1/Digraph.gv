@@ -1,0 +1,127 @@
+digraph {
+	graph [size="12,12"]
+	node [align=left fontsize=12 height=0.2 ranksep=0.1 shape=box style=filled]
+	4602329408 [label=MeanBackward1]
+	4602329688 -> 4602329408
+	4602329688 [label=AddBackward1]
+	4602328232 -> 4602329688
+	4602328232 [label=SqueezeBackward1]
+	4602329016 -> 4602328232
+	4602329016 [label=MmBackward]
+	4602328848 -> 4602329016
+	4602328848 [label=UnsqueezeBackward]
+	4602329520 -> 4602328848
+	4602329520 [label=ThresholdBackward]
+	4602330080 -> 4602329520
+	4602330080 [label=AddBackward1]
+	4602330640 -> 4602330080
+	4602330640 [label=SqueezeBackward1]
+	4602335360 -> 4602330640
+	4602335360 [label=MmBackward]
+	4602335976 -> 4602335360
+	4602335976 [label=UnsqueezeBackward]
+	4602336256 -> 4602335976
+	4602336256 [label=ThresholdBackward]
+	4602336368 -> 4602336256
+	4602336368 [label=AddBackward1]
+	4602336536 -> 4602336368
+	4602336536 [label=SqueezeBackward1]
+	4602336704 -> 4602336536
+	4602336704 [label=MmBackward]
+	4602336816 -> 4602336704
+	4602336816 [label=UnsqueezeBackward]
+	4602336984 -> 4602336816
+	4602336984 [label=ThresholdBackward]
+	4602337096 -> 4602336984
+	4602337096 [label=AddBackward1]
+	4602337208 -> 4602337096
+	4602337208 [label=SqueezeBackward1]
+	4602337376 -> 4602337208
+	4602337376 [label=MmBackward]
+	4602337488 -> 4602337376
+	4602337488 [label=UnsqueezeBackward]
+	4602337656 -> 4602337488
+	4602337656 [label=ThresholdBackward]
+	4602337768 -> 4602337656
+	4602337768 [label=AddBackward1]
+	4602337880 -> 4602337768
+	4602337880 [label=SqueezeBackward1]
+	4602338048 -> 4602337880
+	4602338048 [label=MmBackward]
+	4602338160 -> 4602338048
+	4602338160 [label=UnsqueezeBackward]
+	4602338328 -> 4602338160
+	4602338328 [label=ThresholdBackward]
+	4602338440 -> 4602338328
+	4602338440 [label=AddBackward1]
+	4602338552 -> 4602338440
+	4602338552 [label=SqueezeBackward1]
+	4602338720 -> 4602338552
+	4602338720 [label=MmBackward]
+	4602338832 -> 4602338720
+	4602338832 [label=UnsqueezeBackward]
+	4602339000 -> 4602338832
+	4602339000 [label=ThresholdBackward]
+	4602339112 -> 4602339000
+	4602339112 [label=AddBackward1]
+	4602339280 -> 4602339112
+	4602339280 [label=SqueezeBackward1]
+	4602351800 -> 4602339280
+	4602351800 [label=MmBackward]
+	4602351968 -> 4602351800
+	4602351968 [label=TBackward]
+	4602352080 -> 4602351968
+	4602352080 [label="input.weight
+ (8, 1)" fillcolor=lightblue]
+	4602351688 -> 4602339112
+	4602351688 [label="input.bias
+ (8)" fillcolor=lightblue]
+	4602338888 -> 4602338720
+	4602338888 [label=TBackward]
+	4602339056 -> 4602338888
+	4602339056 [label="linear.0.weight
+ (8, 8)" fillcolor=lightblue]
+	4602338608 -> 4602338440
+	4602338608 [label="linear.0.bias
+ (8)" fillcolor=lightblue]
+	4602338216 -> 4602338048
+	4602338216 [label=TBackward]
+	4602338384 -> 4602338216
+	4602338384 [label="linear.1.weight
+ (8, 8)" fillcolor=lightblue]
+	4602337936 -> 4602337768
+	4602337936 [label="linear.1.bias
+ (8)" fillcolor=lightblue]
+	4602337544 -> 4602337376
+	4602337544 [label=TBackward]
+	4602337712 -> 4602337544
+	4602337712 [label="linear.2.weight
+ (8, 8)" fillcolor=lightblue]
+	4602337264 -> 4602337096
+	4602337264 [label="linear.2.bias
+ (8)" fillcolor=lightblue]
+	4602336872 -> 4602336704
+	4602336872 [label=TBackward]
+	4602337040 -> 4602336872
+	4602337040 [label="linear.3.weight
+ (8, 8)" fillcolor=lightblue]
+	4602336592 -> 4602336368
+	4602336592 [label="linear.3.bias
+ (8)" fillcolor=lightblue]
+	4602335864 -> 4602335360
+	4602335864 [label=TBackward]
+	4602336424 -> 4602335864
+	4602336424 [label="linear.4.weight
+ (8, 8)" fillcolor=lightblue]
+	4602330976 -> 4602330080
+	4602330976 [label="linear.4.bias
+ (8)" fillcolor=lightblue]
+	4602328736 -> 4602329016
+	4602328736 [label=TBackward]
+	4602330192 -> 4602328736
+	4602330192 [label="output.weight
+ (1, 8)" fillcolor=lightblue]
+	4602328120 -> 4602329688
+	4602328120 [label="output.bias
+ (1)" fillcolor=lightblue]
+}

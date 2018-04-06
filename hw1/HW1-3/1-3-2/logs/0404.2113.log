@@ -1,0 +1,15 @@
+2018-04-04 21:13 - MyLogger.__main__ - INFO - Start Training MnistDNN
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 1 [11328/60000 (99%)]	Loss: 1.266497
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 2 [11328/60000 (99%)]	Loss: 0.565043
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 3 [11328/60000 (99%)]	Loss: 0.425048
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 4 [11328/60000 (99%)]	Loss: 0.453269
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 5 [11328/60000 (99%)]	Loss: 0.275939
+2018-04-04 21:13 - MyLogger.trainer - INFO - Training Epoch: 6 [11328/60000 (99%)]	Loss: 0.319444
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 7 [11328/60000 (99%)]	Loss: 0.203014
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 8 [11328/60000 (99%)]	Loss: 0.281622
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 9 [11328/60000 (99%)]	Loss: 0.191858
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 10 [11328/60000 (99%)]	Loss: 0.207712
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 11 [11328/60000 (99%)]	Loss: 0.168874
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 12 [11328/60000 (99%)]	Loss: 0.169118
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 13 [11328/60000 (99%)]	Loss: 0.165840
+2018-04-04 21:14 - MyLogger.trainer - INFO - Training Epoch: 14 [11328/60000 (99%)]	Loss: 0.156725

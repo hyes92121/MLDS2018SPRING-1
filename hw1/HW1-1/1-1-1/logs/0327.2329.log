@@ -1,0 +1,3 @@
+2018-03-27 23:29 - MyLogger.__main__ - INFO - Start training ShallowNet_w104
+2018-03-27 23:29 - MyLogger.trainer.trainer - INFO - Training Epoch: 1 [20000/20000 (100%)]	Loss: 3.249581
+2018-03-27 23:29 - MyLogger.trainer.trainer - INFO - Training Epoch: 2 [20000/20000 (100%)]	Loss: 3.269119
