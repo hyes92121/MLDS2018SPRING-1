@@ -18,10 +18,9 @@ class TrainingDataset(Dataset):
 
 
         self.training_data_path = training_data_path
-        # format (avi id, corresponding sentence)
-        self.data_pair = []
-        self.load_into_ram = load_into_ram
-        self.helper = helper
+        self.data_pair = [] # format: (avi id, corresponding sentence2index)
+        self.load_into_ram = load_into_ram # whether to load all .npy features into self.avi
+        self.helper = helper # this is a Vocabulary() class
 
 
         with open(label_json_file, 'r') as f:
@@ -34,7 +33,7 @@ class TrainingDataset(Dataset):
                 self.data_pair.append((d['id'], s))
 
         if load_into_ram:
-            self.avi = {}
+            self.avi = {} # {_avi_id: _features}
 
             files = os.listdir(training_data_path)
 
@@ -49,6 +48,9 @@ class TrainingDataset(Dataset):
 
 
     def __getitem__(self, idx):
+        """
+        :returns: (_features, _sentence2index)
+        """
         assert (idx < self.__len__())
 
         avi_file_name, sentence = self.data_pair[idx]
@@ -71,7 +73,7 @@ def collate_fn(data):
 
         Args:
             data: list of tuple (avi_data, caption).
-                - avi_data: torch tensor of shape (80, 4096).
+                - avi_data: torch tensor of shape (batch_size, 80, 4096).
                 - caption: torch tensor of shape (batch_size, variable length).
         Returns:
             images: torch tensor of shape (batch_size, 80, 4096).

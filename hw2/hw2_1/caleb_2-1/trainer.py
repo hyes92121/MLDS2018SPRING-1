@@ -21,7 +21,7 @@ class Trainer(object):
         self.train_loader = train_dataloader
         self.test_loader = test_dataloader
 
-        # Use cuda is available
+        # Use cuda if available
         self.__CUDA__ = torch.cuda.is_available()
 
         if self.__CUDA__:

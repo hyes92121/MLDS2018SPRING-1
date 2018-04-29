@@ -28,13 +28,15 @@ class AttentionLayer(nn.Module):
     def forward(self, hidden_state, encoder_outputs):
         """
         Arguments:
-            hidden_state {Variable} -- (1 x batch size x dim)
+            (decoder current) hidden_state {Variable} -- (1 x batch size x dim)
             encoder_outputs {Variable} -- batch_size x seq_len x dim
         Returns:
             Variable -- context vector of size batch_size x dim
         """
 
         batch_size, seq_len, feat_n = encoder_outputs.size()
+        # Resize hidden_state and copy it seq_len times, so that we can get its attention
+        # with each encoder_output
         hidden_state = hidden_state.view(batch_size, 1, feat_n).repeat(1, seq_len, 1)
 
         matching_inputs = torch.cat((encoder_outputs, hidden_state), 2).view(-1, 2*self.hidden_size)
@@ -53,7 +55,7 @@ class EncoderRNN(nn.Module):
         super(EncoderRNN, self).__init__()
 
         # hyper parameters
-        self.input_size = input_size
+        self.input_size = input_size # 4096
         self.hidden_size = hidden_size
 
         # layers
@@ -89,14 +91,14 @@ class DecoderRNN(nn.Module):
 
         # define hyper parameters
         self.hidden_size = hidden_size # size of gru's Y and H
-        self.output_size = output_size # final decoder output dim
-        self.vocab_size = vocab_size
-        self.word_dim = word_dim
+        self.output_size = output_size # final decoder output (softmax) dim
+        self.vocab_size = vocab_size # used for transforming input one-hot into word2vec
+        self.word_dim = word_dim # word2vec dim
         self.helper = helper
 
 
         # define layers
-        self.embedding = nn.Embedding(vocab_size, word_dim)
+        self.embedding = nn.Embedding(vocab_size, word_dim) # using word embeddings 
         self.dropout = nn.Dropout(dropout_percentage)
         self.gru = nn.GRU(hidden_size+word_dim, hidden_size, batch_first=True)
         self.attention = AttentionLayer(hidden_size)
@@ -108,6 +110,7 @@ class DecoderRNN(nn.Module):
         :param encode_hidden_state:
         :param encoder_output:
         :param targets: (batch, seq_len) target labels of ground truth sentences
+        :param steps: just a parameter used for calculating scheduled sampling, unrelated to RNN time steps
         :return:
         """
 
@@ -126,7 +129,7 @@ class DecoderRNN(nn.Module):
             raise NotImplementedError('steps is not specified. Error location: RNNDecoder -> steps')
 
         #TODO: implement schedule sampling
-
+        # targets is only used for scheduled sampling, not used for calculating loss
         targets = self.embedding(targets) # (batch, max_seq_len, embedding_size) embeddings of target labels of ground truth sentences
         _, seq_len, _ = targets.size()
 
@@ -163,13 +166,14 @@ class DecoderRNN(nn.Module):
             logger.debug('gru input size: {}'.format(gru_input.size()))
             logger.debug('decoder current hidden state size: {}'.format(decoder_current_hidden_state.size()))
 
+            # only runs for one time step because sequence length is only 1
             gru_output, decoder_current_hidden_state = self.gru(gru_input, decoder_current_hidden_state)
 
             logger.debug('gru output size: {}'.format(gru_output.size()))
             logger.debug('decoder output hidden state size: {}'.format(decoder_current_hidden_state.size()))
 
             # project the dim of the gru output to match the final decoder output dim
-            #logprob = F.log_softmax(self.to_final_output(gru_output.squeeze(1)), dim=1)
+            # logprob = F.log_softmax(self.to_final_output(gru_output.squeeze(1)), dim=1)
             logprob = self.to_final_output(gru_output.squeeze(1))
             seq_logProb.append(logprob.unsqueeze(1))
 
@@ -186,7 +190,7 @@ class DecoderRNN(nn.Module):
 
         return seq_logProb, seq_predictions
 
-
+    # basically same as forward(), but without scheduled sampling
     def infer(self, encoder_last_hidden_state, encoder_output):
         _, batch_size, _ = encoder_last_hidden_state.size()
         decoder_current_hidden_state = self.initialize_hidden_state(encoder_last_hidden_state)
@@ -195,7 +199,7 @@ class DecoderRNN(nn.Module):
         seq_logProb = []
         seq_predictions = []
 
-        assumption_seq_len = 28
+        assumption_seq_len = 28 # run for fixed amount of time steps
         for i in range(assumption_seq_len-1):
 
             current_input_word = self.embedding(decoder_current_input_word).squeeze(1)

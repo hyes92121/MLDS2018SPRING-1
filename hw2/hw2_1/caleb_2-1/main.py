@@ -54,8 +54,8 @@ def main():
     encoder = EncoderRNN(input_size=INPUT_FEAT_DIM, hidden_size=HIDDEN_SIZE)
 
     decoder = DecoderRNN(hidden_size=HIDDEN_SIZE,
-                         output_size=OUTPUT_DIM,
-                         vocab_size=OUTPUT_DIM,
+                         output_size=OUTPUT_DIM, # used for transforming hidden state into output softmax
+                         vocab_size=OUTPUT_DIM, # used for transforming input one-hot into word2vec
                          word_dim=WORD_DIM
                          )
 

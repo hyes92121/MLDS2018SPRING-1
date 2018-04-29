@@ -17,11 +17,11 @@ class Vocabulary(object):
 
         # define private variables
         self._word_count = {}
-        self.vocab_size = None
+        self.vocab_size = None # only counting good_words and useful_tokens
         self._good_words = None
         self._bad_words = None
-        self.i2w = None
-        self.w2i = None
+        self.i2w = None # only counting good_words and useful_tokens
+        self.w2i = None # only counting good_words and useful_tokens
 
         # initialize class
         self._initialize()
@@ -31,6 +31,8 @@ class Vocabulary(object):
 
     def _initialize(self):
         """
+        Runs through all words in training data, splitting them into
+        bad words (low frequency) and good words
         :return:
         """
         with open(self.filepath, 'r') as f:
@@ -66,7 +68,7 @@ class Vocabulary(object):
             self.i2w[index] = token
             self.w2i[token] = index
 
-        self.vocab_size = len(self.i2w) + len(useful_tokens)
+        self.vocab_size = len(self.i2w)
 
 
     def _sanitycheck(self):

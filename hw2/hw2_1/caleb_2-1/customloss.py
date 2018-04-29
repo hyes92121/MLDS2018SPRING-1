@@ -22,7 +22,10 @@ class CustomLoss(nn.Module):
             predict      = x[batch]
             ground_truth = y[batch]
             seq_len = lengths[batch] -1
+            # seq_len includes <SOS> and <EOS>,
+            # but our predictions and modified ground truths do not have <SOS>
 
+            # 
             predict = predict[:seq_len]
             ground_truth = ground_truth[:seq_len]
 
@@ -34,6 +37,8 @@ class CustomLoss(nn.Module):
             else:
                 predict_cat = torch.cat((predict_cat, predict), dim=0)
                 groundT_cat = torch.cat((groundT_cat, ground_truth), dim=0)
+                # concat so that we can calculate loss even if there exists
+                # different sequence lengths in a batch
 
         try:
             assert len(predict_cat) == len(groundT_cat)
