@@ -133,7 +133,7 @@ class DecoderRNN(nn.Module):
         targets = self.embedding(targets) # (batch, max_seq_len, embedding_size) embeddings of target labels of ground truth sentences
         _, seq_len, _ = targets.size()
 
-        for i in range(seq_len-1): # only the MAX_SEQ_LEN-1 words will be the gru input
+        for i in range(seq_len-1): # only the MAX_SEQ_LEN-1 words will be the gru input, we exclude EOS token
             """
             we implement the decoding procedure in a step by step fashion
             so the seq_len is always 1

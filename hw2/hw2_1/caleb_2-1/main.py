@@ -43,7 +43,7 @@ def main():
 
     INPUT_FEAT_DIM = 4096
     HIDDEN_SIZE = 1000
-    WORD_DIM = 1000
+    WORD_DIM = 1000 # word2vec dimension
     OUTPUT_DIM = helper.vocab_size
 
     EPOCH = 300
