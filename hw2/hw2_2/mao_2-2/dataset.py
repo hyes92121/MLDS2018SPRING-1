@@ -22,7 +22,7 @@ class TrainingDataset(Dataset):
         self.load_into_ram = load_into_ram # whether to load all training text pairs into RAM
         self.helper = helper # this is a Vocabulary() class
 
-        print('Parsing training data to dataset...')
+        print('Parsing training data to Dataset()...')
         with open(self.training_data_path, 'r') as f:
             prev_sentence = []
             curr_sentence = []
@@ -40,7 +40,7 @@ class TrainingDataset(Dataset):
                     # if prev_sentence exists, add this training pair to data_pair
                     if prev_sentence != []:
                         self.data_pair.append((prev_sentence, curr_sentence))
-
+        print('Finished creating Dataset() !')
 
     def __len__(self):
         return len(self.data_pair)
