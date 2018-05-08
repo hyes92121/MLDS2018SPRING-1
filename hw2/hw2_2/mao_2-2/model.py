@@ -127,7 +127,7 @@ class DecoderRNN(nn.Module):
             threshold = self._get_teacher_learning_ratio(training_steps=steps)
             
             # target[:, i]: (batch, 1, embedding_size)
-            current_input_word = targets[:, i] if random.uniform(0.05, 0.995) > threshold \
+            current_input_word = targets[:, i] if random.random() < threshold \
                 else self.embedding(decoder_current_input_word)
             # current_input_word: (batch, 1, embedding_size)
 
@@ -189,8 +189,10 @@ class DecoderRNN(nn.Module):
         return seq_Prob, seq_predictions
 
 
-    def _get_teacher_learning_ratio(self, training_steps): # TODO: currently, feeding epoch_num as training_steps, will output [0.7,1] 
-        return (expit(training_steps/40 +0.85))
+    def _get_teacher_learning_ratio(self, training_steps): # TODO: change this/
+        return max(30 - epoch/2, 0) / 30
+        # for epochs 1 ~ 30, ratio is 0.9999 ~ 0.5
+        # for epochs larger than 60, ratio is 0
 
 
 
