@@ -27,7 +27,7 @@ class CustomLoss(nn.Module):
         for batch in range(batch_size):
             predict      = seq_Prob[batch]
             ground_truth = curr_sentences_minus_SOS[batch]
-            length_curr_sentence_no_SOS = lengths_curr_sentences[batch]-1 # TODO: why do we not include <EOS> in loss calculation?
+            length_curr_sentence_no_SOS = lengths_curr_sentences[batch]-1
 
             # 
             predict = predict[:length_curr_sentence_no_SOS] # cut prediction length to be same as ground_truth length
