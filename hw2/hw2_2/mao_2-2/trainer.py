@@ -31,13 +31,17 @@ class Trainer(object):
         self.helper = helper
 
 
-    def train(self, epoch, check_result=False, model_dir='model', batches_per_save=300): # TODO: currently using epoch as steps
+    def train(self, epoch, check_result=False, model_dir='model', batches_per_save=300,
+                skip_to_batch_idx=0): # TODO: currently using epoch as steps
         self.model.train()
 
         test_input, test_truth = None, None
 
         for batch_idx, batch in enumerate(self.train_loader):
             # prepare data
+            if batch_idx < skip_to_batch_idx:
+                continue
+
             a = time.time()
             padded_prev_sentences, padded_curr_sentences, lengths_curr_sentences = batch
             if self.__CUDA__:
