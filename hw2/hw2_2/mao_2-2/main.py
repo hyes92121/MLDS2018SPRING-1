@@ -13,7 +13,7 @@ from trainer import Trainer
 training_data_path='data/clr_conversation.txt'
 helper = Vocabulary(training_data_path)
 
-BATCH_SIZE = 100
+BATCH_SIZE = 80
 dataset = TrainingDataset(training_data_path, helper)
 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=8, collate_fn=collate_fn)
 
@@ -25,14 +25,14 @@ MDL_OUTDIR = '1505_models'
 if not os.path.exists(MDL_OUTDIR):
     os.mkdir(MDL_OUTDIR)
 
-MDL_PRETRAINED_PATH = '1505_models/epoch1_data444600.pt'
+MDL_PRETRAINED_PATH = '1505_models/epoch1_data1938000.pt'
 if MDL_PRETRAINED_PATH:
 	print('Loading pretrained model weights from:', MDL_PRETRAINED_PATH)
 	model.load_state_dict(torch.load(MDL_PRETRAINED_PATH))
 else:
 	print('Initiating new model...')
 
-SKIP_TO_DATA_IDX = 444600 # copy this directly from command line
+SKIP_TO_DATA_IDX = 1938000 # copy this directly from command line
 skip_to_batch_idx = SKIP_TO_DATA_IDX // BATCH_SIZE
 if skip_to_batch_idx != 0:
 	print('Skipping to batch', skip_to_batch_idx)

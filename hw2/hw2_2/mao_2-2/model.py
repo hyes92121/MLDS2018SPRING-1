@@ -190,6 +190,7 @@ class DecoderRNN(nn.Module):
 
 
     def _get_teacher_learning_ratio(self, training_steps): # TODO: change scheduled sampling scheme
+        epoch = training_steps
         return max(30 - epoch/2, 0) / 30
         # for epochs 1 ~ 30, ratio is 0.9999 ~ 0.5
         # for epochs larger than 60, ratio is 0

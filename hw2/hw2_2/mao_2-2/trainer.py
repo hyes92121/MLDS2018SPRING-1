@@ -81,9 +81,13 @@ class Trainer(object):
                 torch.save(self.model.state_dict(), "{}/epoch{}_data{}.pt".format(model_dir, epoch, (batch_idx+1) * batch_size))
                 
                 if check_result:
+                    print_test_input = [' '.join(self.helper.index2sentence(s)) for s in test_input[0:3]]
+                    print('Input: \n{} \n{}\n{}\n'.format(print_test_input[0], print_test_input[1], print_test_input[2]))
+
                     _, test_predictions = self.model(prev_sentences=test_input, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)
                     result = [' '.join(self.helper.index2sentence(s)) for s in test_predictions]
                     print('Training Result: \n{} \n{}\n{}\n'.format(result[0], result[1], result[2]))
+                    
                     truth = [' '.join(self.helper.index2sentence(s)) for s in test_truth]
                     print('Ground Truth: \n{} \n{}\n{}\n'.format(truth[0], truth[1], truth[2]))
 
