@@ -31,7 +31,7 @@ class Trainer(object):
         self.helper = helper
 
 
-    def train(self, epoch, check_result=False, model_dir='model', batches_per_save=300,
+    def train(self, epoch, batch_size, check_result=False, model_dir='model', batches_per_save=300,
                 skip_to_batch_idx=0): # TODO: currently using epoch as steps
         self.model.train()
 
@@ -77,8 +77,8 @@ class Trainer(object):
 
             if ((batch_idx+1) % batches_per_save == 0):
                 print()
-                print('Saving model', (batch_idx+1) // batches_per_save) # 5 minutes per model save
-                torch.save(self.model.state_dict(), "{}/{}.pt".format(model_dir, (batch_idx+1) // batches_per_save))
+                print('Saving model', "{}/epoch{}_data{}.pt".format(model_dir, epoch, (batch_idx+1) * batch_size)) # 5 minutes per model save
+                torch.save(self.model.state_dict(), "{}/epoch{}_data{}.pt".format(model_dir, epoch, (batch_idx+1) * batch_size))
                 
                 if check_result:
                     _, test_predictions = self.model(prev_sentences=test_input, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)

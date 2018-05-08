@@ -13,37 +13,40 @@ from trainer import Trainer
 training_data_path='data/clr_conversation.txt'
 helper = Vocabulary(training_data_path)
 
+BATCH_SIZE = 100
 dataset = TrainingDataset(training_data_path, helper)
-dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8, collate_fn=collate_fn)
-
-EPOCH = 300
-MDL_OUTDIR = '1505_models/'
-MDL_PRETRAINED_PATH = '1505_models/18.pt'
-BATCHES_PER_SAVE = 60 # 60 batches/min on GTX1080
-SKIP_TO_BATCH_IDX = 19 * BATCHES_PER_SAVE # this will also offset the model filenames (which are numbers)
-if not os.path.exists(MDL_OUTDIR):
-    os.mkdir(MDL_OUTDIR)
+dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=8, collate_fn=collate_fn)
 
 encoder = EncoderRNN(word_vec_filepath='word_vectors.npy', hidden_size=512, num_layers=1)
 decoder = DecoderRNN(word_vec_filepath='word_vectors.npy', hidden_size=512, num_layers=1)
 model = VideoCaptionGenerator(encoder=encoder, decoder=decoder)
 
+MDL_OUTDIR = '1505_models'
+if not os.path.exists(MDL_OUTDIR):
+    os.mkdir(MDL_OUTDIR)
+
+MDL_PRETRAINED_PATH = '1505_models/epoch1_data444600.pt'
 if MDL_PRETRAINED_PATH:
 	print('Loading pretrained model weights from:', MDL_PRETRAINED_PATH)
 	model.load_state_dict(torch.load(MDL_PRETRAINED_PATH))
 else:
 	print('Initiating new model...')
 
-if SKIP_TO_BATCH_IDX != 0:
-	print('Skipping to batch', SKIP_TO_BATCH_IDX)
+SKIP_TO_DATA_IDX = 444600 # copy this directly from command line
+skip_to_batch_idx = SKIP_TO_DATA_IDX // BATCH_SIZE
+if skip_to_batch_idx != 0:
+	print('Skipping to batch', skip_to_batch_idx)
 
 trainer = Trainer(model=model, train_dataloader=dataloader, helper=helper)
 
 s = time.time()
 print('Start training...')
+
+EPOCH = 300
+BATCHES_PER_SAVE = 60 # 60 batches/min on GTX1080 (for batch_size = 128) 
 for epoch in range(EPOCH):
-    trainer.train(epoch+1, check_result=True, model_dir=MDL_OUTDIR, batches_per_save=BATCHES_PER_SAVE,
-    				skip_to_batch_idx=SKIP_TO_BATCH_IDX)
+    trainer.train(epoch+1, batch_size=BATCH_SIZE, check_result=True, model_dir=MDL_OUTDIR, batches_per_save=BATCHES_PER_SAVE,
+    				skip_to_batch_idx=skip_to_batch_idx)
     trainer.eval(check_result=True)
 
 e = time.time()
