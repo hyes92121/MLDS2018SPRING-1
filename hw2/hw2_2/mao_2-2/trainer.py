@@ -25,13 +25,13 @@ class Trainer(object):
         self.parameters = model.parameters()
         self.loss_fn = CustomLoss()
         self.loss = None
-        self.optimizer = optim.Adam(self.parameters, lr=3e-4) # TODO: change optimizer
+        self.optimizer = torch.optim.RMSprop(self.parameters) # TODO: change optimizer
 
         # used for printing model output
         self.helper = helper
 
 
-    def train(self, epoch, check_result=False): # TODO: currently using epoch as steps
+    def train(self, epoch, check_result=False, model_dir='model', batches_per_save=300): # TODO: currently using epoch as steps
         self.model.train()
 
         test_input, test_truth = None, None
@@ -71,16 +71,17 @@ class Trainer(object):
                     loss=loss.data[0]
                 )
                 print('\r', info, '   ', int(time.time()-a), 'seconds/batch', end='') # original: end='\r'
-        print()
 
-
-        if check_result:
-            _, test_predictions = self.model(prev_sentences=padded_prev_sentences, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)
-            result = [' '.join(self.helper.index2sentence(s)) for s in test_predictions]
-            print('Training Result: \n{} \n{}\n{}\n'.format(result[0], result[1], result[2]))
-            truth = [' '.join(self.helper.index2sentence(s)) for s in test_truth]
-            print('Ground Truth: \n{} \n{}\n{}\n'.format(truth[0], truth[1], truth[2]))
-
+            if ((batch_idx+1) % batches_per_save == 0):
+                print()
+                print('Saving model', (batch_idx+1) // batches_per_save) # 5 minutes per model save
+                torch.save(self.model.state_dict(), "{}/{}.pt".format(model_dir, (batch_idx+1) // batches_per_save))
+                if check_result:
+                    _, test_predictions = self.model(prev_sentences=padded_prev_sentences, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)
+                    result = [' '.join(self.helper.index2sentence(s)) for s in test_predictions]
+                    print('Training Result: \n{} \n{}\n{}\n'.format(result[0], result[1], result[2]))
+                    truth = [' '.join(self.helper.index2sentence(s)) for s in test_truth]
+                    print('Ground Truth: \n{} \n{}\n{}\n'.format(truth[0], truth[1], truth[2]))
 
 
     def eval(self, check_result=False):
@@ -89,7 +90,7 @@ class Trainer(object):
 
         test_predictions, test_truth = None, None
 
-        for batch_idx, batch in enumerate(self.train_loader):
+        for batch_idx, batch in enumerate(self.train_loader): # TODO: currently not using test_input.txt
             # prepare data
             padded_prev_sentences, padded_curr_sentences, lengths_curr_sentences = batch
             if self.__CUDA__:
