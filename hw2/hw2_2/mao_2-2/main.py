@@ -17,8 +17,8 @@ dataset = TrainingDataset(training_data_path, helper)
 dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8, collate_fn=collate_fn)
 
 EPOCH = 300
-MDL_OUTDIR = 'model_state_dict'
-MDL_PRETRAINED_PATH = ''
+MDL_OUTDIR = '1505_models/'
+MDL_PRETRAINED_PATH = 'model_state_dict/18.pt'
 if not os.path.exists(MDL_OUTDIR):
     os.mkdir(MDL_OUTDIR)
 
@@ -27,7 +27,10 @@ decoder = DecoderRNN(word_vec_filepath='word_vectors.npy', hidden_size=512, num_
 model = VideoCaptionGenerator(encoder=encoder, decoder=decoder)
 
 if MDL_PRETRAINED_PATH:
+	print('Loading pretrained model weights...')
 	model.load_state_dict(torch.load(MDL_PRETRAINED_PATH))
+else:
+	print('Initiating new model...')
 
 trainer = Trainer(model=model, train_dataloader=dataloader, helper=helper)
 

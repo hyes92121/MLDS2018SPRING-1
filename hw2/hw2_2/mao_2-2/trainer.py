@@ -51,9 +51,8 @@ class Trainer(object):
             padded_curr_sentences = padded_curr_sentences[:, 1:]  # eliminate <SOS>
 
             if check_result:
-                if test_input is None or test_truth is None:
-                    test_input = padded_prev_sentences[:3]
-                    test_truth = padded_curr_sentences[:3]
+                test_input = padded_prev_sentences # model has to take same batch size as training
+                test_truth = padded_curr_sentences[:3]
 
 
             loss = self.loss_fn(seq_Prob, padded_curr_sentences, lengths_curr_sentences)
@@ -76,8 +75,9 @@ class Trainer(object):
                 print()
                 print('Saving model', (batch_idx+1) // batches_per_save) # 5 minutes per model save
                 torch.save(self.model.state_dict(), "{}/{}.pt".format(model_dir, (batch_idx+1) // batches_per_save))
+                
                 if check_result:
-                    _, test_predictions = self.model(prev_sentences=padded_prev_sentences, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)
+                    _, test_predictions = self.model(prev_sentences=test_input, mode='train', curr_sentences=padded_curr_sentences, steps=epoch)
                     result = [' '.join(self.helper.index2sentence(s)) for s in test_predictions]
                     print('Training Result: \n{} \n{}\n{}\n'.format(result[0], result[1], result[2]))
                     truth = [' '.join(self.helper.index2sentence(s)) for s in test_truth]
