@@ -2,4 +2,4 @@
 
 `python3 main.py`
 
-Hyperparameters are declared in CAPITAL_LETTERS
+Hyperparameters of `main.py` are declared in CAPITAL_LETTERS
