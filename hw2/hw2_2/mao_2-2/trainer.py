@@ -25,7 +25,7 @@ class Trainer(object):
         self.parameters = model.parameters()
         self.loss_fn = CustomLoss()
         self.loss = None
-        self.optimizer = torch.optim.RMSprop(self.parameters) # TODO: change optimizer
+        self.optimizer = torch.optim.RMSprop(self.parameters, lr=0.0001) # TODO: change optimizer
 
         # used for printing model output
         self.helper = helper

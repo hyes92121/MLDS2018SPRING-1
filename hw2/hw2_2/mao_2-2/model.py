@@ -41,7 +41,7 @@ class AttentionLayer(nn.Module):
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, word_vec_filepath='word_vectors.npy', hidden_size=1024, num_layers=1): # TODO: use more than 1 layer (may have to adjust other modules)
+    def __init__(self, word_vec_filepath='word_vectors.npy', hidden_size=1024, num_layers=2): # TODO: use more than 1 layer (may have to adjust other modules)
         super(EncoderRNN, self).__init__()
     
         self.hidden_size = hidden_size
@@ -71,7 +71,7 @@ class EncoderRNN(nn.Module):
         return top_layer_output, last_time_step_all_layers_output
 
 class DecoderRNN(nn.Module):
-    def __init__(self, word_vec_filepath='word_vectors.npy', hidden_size=1024, num_layers=1): # TODO: use more than 1 layer (may have to adjust other modules)
+    def __init__(self, word_vec_filepath='word_vectors.npy', hidden_size=1024, num_layers=2): # TODO: use more than 1 layer (may have to adjust other modules)
         super(DecoderRNN, self).__init__()
 
         # define hyper parameters
@@ -132,7 +132,7 @@ class DecoderRNN(nn.Module):
             # current_input_word: (batch, 1, embedding_size)
 
             # weighted sum of the encoder output w.r.t the current hidden state
-            context = self.attention(decoder_current_hidden_state, encoder_output) # (1, batch, hidden_size) (batch, seq_len, hidden_size) 
+            context = self.attention(decoder_current_hidden_state[-1], encoder_output) # (1, batch, hidden_size) (batch, seq_len, hidden_size) 
             # context: (batch, hidden_size)
             gru_input = torch.cat([current_input_word.squeeze(1), context], dim=1).unsqueeze(1)
             # gru_input: (batch, 1, embedding_size+hidden_size)
@@ -171,7 +171,7 @@ class DecoderRNN(nn.Module):
 
             current_input_word = self.embedding(decoder_current_input_word)
 
-            context = self.attention(decoder_current_hidden_state, encoder_output)
+            context = self.attention(decoder_current_hidden_state[-1], encoder_output)
 
             gru_input = torch.cat([current_input_word.squeeze(1), context], dim=1).unsqueeze(1)
 
