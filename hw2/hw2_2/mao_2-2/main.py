@@ -14,7 +14,7 @@ training_data_path='data/clr_conversation.txt'
 helper = Vocabulary(training_data_path)
 
 BATCH_SIZE = 80
-dataset = TrainingDataset(training_data_path, helper)
+dataset = TrainingDataset(training_data_path, helper, train_percentage=0.1)
 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=8, collate_fn=collate_fn)
 
 encoder = EncoderRNN(word_vec_filepath='word_vectors.npy', hidden_size=256, num_layers=2)

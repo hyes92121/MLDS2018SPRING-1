@@ -1,6 +1,7 @@
 import os
 import json
 import torch
+import random
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
 
@@ -11,7 +12,7 @@ def checkpoint(): # currently not using this function
     input()
 
 class TrainingDataset(Dataset):
-    def __init__(self, training_data_path, helper, load_into_ram=True): # TODO: currently loading all training text pairs into RAM
+    def __init__(self, training_data_path, helper, load_into_ram=True, train_percentage=1): # TODO: currently loading all training text pairs into RAM
         # check if file path exists
         if not os.path.exists(training_data_path):
             raise FileNotFoundError('File path {} does not exist. Error location: {}'.format(training_data_path, __name__))
@@ -40,7 +41,13 @@ class TrainingDataset(Dataset):
                     # if prev_sentence exists, add this training pair to data_pair
                     if prev_sentence != []:
                         self.data_pair.append((prev_sentence, curr_sentence))
-        print('Finished creating Dataset() !')
+        print('Finished creating Dataset(), total number of training examples:', len(self.data_pair))
+
+        actual_number_of_training_examples = int(len(self.data_pair) * train_percentage)
+        sample_ids = random.sample(range(0, len(self.data_pair)), actual_number_of_training_examples)
+        self.data_pair = [self.data_pair[i] for i in sample_ids]
+        print('Actually using', train_percentage, 'of training examples, total:', len(self.data_pair))
+
 
     def __len__(self):
         return len(self.data_pair)
@@ -106,7 +113,7 @@ if __name__ == '__main__':
 
     helper = Vocabulary(training_data_path)
 
-    dataset = TrainingDataset(training_data_path, helper, load_into_ram=True)
+    dataset = TrainingDataset(training_data_path, helper, load_into_ram=True, train_percentage=0.1)
 
     dataloader = DataLoader(dataset, batch_size=3, shuffle=True, num_workers=8, collate_fn=collate_fn)
 
@@ -125,11 +132,9 @@ if __name__ == '__main__':
 
             #s = time.time()
             print('batch no: {}'.format(batch_n))
-            padded_prev_sentences, lengths_prev_sentences, padded_curr_sentences, lengths_curr_sentences = batch
+            padded_prev_sentences, padded_curr_sentences, lengths_curr_sentences = batch
 
             print(padded_prev_sentences)
-            print()
-            print(lengths_prev_sentences)
             print()
             print(padded_curr_sentences)
             print()
