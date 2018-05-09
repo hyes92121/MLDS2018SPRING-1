@@ -4,12 +4,12 @@ import json
 from gensim.models import FastText
 import numpy as np
 
-class Vocabulary(object):
+class Vocabulary(object):# IMPORTANT: <embedding_filename>.npy is tied to the Vocabulary() that trained it
     """
     Helper class for processing words
     """
 
-    def __init__(self, filepath, min_word_count=10, word_vec_dim=100, retrain_word_vecs = False):
+    def __init__(self, filepath, min_word_count=10, word_vec_dim=100, retrain_word_vecs=False, word_vec_outfile_name='word_vectors.npy'):
 
         # define public variables
         self.filepath = filepath
@@ -28,11 +28,16 @@ class Vocabulary(object):
         # initialize class
         print('Initalizing vocabulary...')
         self._initialize()
+        print('Vocab size:', self.vocab_size)
+
         print('Building mapping...')
         self._build_mapping()
+
         self._sanitycheck()
+
         if retrain_word_vecs:
-            self._train_wordvecs()
+            print('Retraining word vectors...')
+            self._train_wordvecs(outfile_name=word_vec_outfile_name)
 
 
     def _initialize(self):
@@ -94,17 +99,16 @@ class Vocabulary(object):
 
         return sentence
 
-    def _train_wordvecs(self):
+    def _train_wordvecs(self, outfile_name):
         with open(self.filepath) as f: # input file should be .txt
-            print('Training word vectors...')
-            model = FastText([self.reannotate(line) for line in f], min_count=1, size=self.word_vec_dim) # TODO: currently loading entire dataset into RAM
-
+            model = FastText([self.reannotate(line) for line in f], min_count=self.min_word_count, size=self.word_vec_dim) # TODO: currently loading entire dataset into RAM
+            
         word_vectors = np.zeros((len(self.i2w), self.word_vec_dim))
-        for index in self.i2w:
+        for index in self.i2w: # let <embeddings_filename>.npy indices match Vocabulary() indices
             wordvec = model[self.i2w[index]]
             word_vectors[index] = wordvec
         print('Saving word vectors...')
-        np.save('word_vectors.npy', word_vectors)
+        np.save(outfile_name, word_vectors)
 
     def word2index(self, w):
         return self.w2i[w]
@@ -124,8 +128,9 @@ class Vocabulary(object):
 if __name__ == '__main__':
     retrain_word_vecs = False
     print('retrain_word_vecs:', retrain_word_vecs)
-    a = Vocabulary('data/clr_conversation.txt', min_word_count=10, word_vec_dim=100, retrain_word_vecs = retrain_word_vecs)
-    # print(a.vocab_size)
+    a = Vocabulary('data/clr_conversation.txt', min_word_count=40, word_vec_dim=100, retrain_word_vecs = retrain_word_vecs)
+    print(a.vocab_size) # (10,44089)  (20,29273)  (30,22410)  (40,19292)
+
     # print(len(a._good_words))
     # print(len(a._bad_words))
 

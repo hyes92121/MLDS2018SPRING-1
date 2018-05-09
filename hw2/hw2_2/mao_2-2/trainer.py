@@ -10,7 +10,7 @@ from customloss import CustomLoss
 
 
 class Trainer(object):
-    def __init__(self, model, train_dataloader,  helper=None): # no test set for HW2-2
+    def __init__(self, model, train_dataloader,  helper=None, lr=None): # no test set for HW2-2
 
         self.train_loader = train_dataloader
 
@@ -25,7 +25,10 @@ class Trainer(object):
         self.parameters = model.parameters()
         self.loss_fn = CustomLoss()
         self.loss = None
-        self.optimizer = torch.optim.RMSprop(self.parameters, lr=0.0001) # TODO: change optimizer
+        if lr != None:
+            self.optimizer = torch.optim.RMSprop(self.parameters, lr=lr) # TODO: change optimizer
+        else:
+            self.optimizer = torch.optim.RMSprop(self.parameters) # use default lr if we did not specify one
 
         # used for printing model output
         self.helper = helper
