@@ -12,9 +12,9 @@ from trainer import Trainer
 
 training_data_path='data/clr_conversation.txt'
 # IMPORTANT: whenever you change Vocabulary() paramaters, you have to retrain_word_vecs
-WORD_VEC_FILE = 'word_vectors_min40.npy'
-helper = Vocabulary(training_data_path, min_word_count=40, word_vec_dim=100)
-# helper = Vocabulary(training_data_path, min_word_count=40, word_vec_dim=100, retrain_word_vecs=True, word_vec_outfile_name=WORD_VEC_FILE)
+WORD_VEC_FILE = 'word_vectors_min30.npy'
+# helper = Vocabulary(training_data_path, min_word_count=40, word_vec_dim=100)
+helper = Vocabulary(training_data_path, min_word_count=30, word_vec_dim=200, retrain_word_vecs=True, word_vec_outfile_name=WORD_VEC_FILE)
 
 BATCH_SIZE = 80
 dataset = TrainingDataset(training_data_path, helper, train_percentage=0.1)
@@ -24,7 +24,7 @@ encoder = EncoderRNN(word_vec_filepath=WORD_VEC_FILE, hidden_size=256, num_layer
 decoder = DecoderRNN(word_vec_filepath=WORD_VEC_FILE, hidden_size=256, num_layers=2)
 model = VideoCaptionGenerator(encoder=encoder, decoder=decoder)
 
-MDL_OUTDIR = 'vocab_min40'
+MDL_OUTDIR = 'vocab_min30_dim200'
 if not os.path.exists(MDL_OUTDIR):
     os.mkdir(MDL_OUTDIR)
 

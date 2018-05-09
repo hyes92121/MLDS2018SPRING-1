@@ -28,10 +28,10 @@ class Vocabulary(object):# IMPORTANT: <embedding_filename>.npy is tied to the Vo
         # initialize class
         print('Initalizing vocabulary...')
         self._initialize()
-        print('Vocab size:', self.vocab_size)
 
         print('Building mapping...')
-        self._build_mapping()
+        self._build_mapping()        
+        print('Vocab size:', self.vocab_size)
 
         self._sanitycheck()
 
