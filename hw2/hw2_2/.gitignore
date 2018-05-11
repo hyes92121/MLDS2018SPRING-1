@@ -1,2 +1,5 @@
 *.gdoc
 .ip*
+clr*
+epoch*
+test*
