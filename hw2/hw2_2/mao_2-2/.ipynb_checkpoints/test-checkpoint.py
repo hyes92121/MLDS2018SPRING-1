@@ -1,3 +1,4 @@
+
 import os
 import time
 import torch
@@ -12,6 +13,8 @@ from trainer import Trainer
 import jieba
 import sys
 import random
+from torch._C import default_generator
+print(torch.cuda.initial_seed())
 
 training_data_path='clr_conversation.txt'
 helper = Vocabulary(training_data_path)
@@ -31,9 +34,10 @@ if MDL_PRETRAINED_PATH:
 	model.load_state_dict(torch.load(MDL_PRETRAINED_PATH))
 else:
 	print('Fail to load model...')
+
     
     
-    
+
 """
 def parse_testing(sentence, helper, pre_split=False):
     #print(sentence)
@@ -109,7 +113,7 @@ with open("evaluation/test_input.txt", 'r') as f:
         print("output : " + result)
 f_w.close()
 '''
-
+print(torch.cuda.is_available())
 
 if torch.cuda.is_available():
     model = model.cuda()
