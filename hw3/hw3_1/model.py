@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
@@ -18,26 +17,28 @@ class Generator(nn.Module):
         x = F.selu(self.convT1(x))  #(batch, 64, 32, 32)
         x = F.selu(self.convT2(x))  #(batch, 3, 64, 64)
         return F.tanh(x)
-
+    
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         """
         input:(batch, 3, 64, 64)
         """
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=5, stride=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2)
-        self.fc1 = nn.Linear(256*6*6, 1)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=5, stride=1, bias=False)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv3 = nn.Conv2d(64, 96, kernel_size=4, stride=2, bias=False)
+        self.conv4 = nn.Conv2d(96, 128, kernel_size=4, stride=2, bias=False)
+        self.fc1 = nn.Linear(128*6*6, 128)
+        self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
         x = F.selu(self.conv1(x)) #(batch, 32, 60, 60)
         x = F.selu(self.conv2(x)) #(batch, 64, 30, 30)
-        x = F.selu(self.conv3(x)) #(batch, 128, 14, 14)
-        x = F.selu(self.conv4(x)) #(batch, 256, 6, 6)
-        x = x.view(-1, 256*6*6)
+        x = F.selu(self.conv3(x)) #(batch, 96, 14, 14)
+        x = F.selu(self.conv4(x)) #(batch, 128, 6, 6)
+        x = x.view(-1, 128*6*6)
         x = F.selu(self.fc1(x))
+        x = F.selu(self.fc2(x))
         return F.sigmoid(x)
 
 
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     
     #dataset = TrainingDataset()
     #dataloader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8)
-    """
+    
     model = Generator()
     noise = np.random.normal(0, 1, (1, 100))
     noise = Variable(torch.FloatTensor(noise))
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     noise = np.random.normal(0, 1, (30, 3, 64, 64))
     noise = Variable(torch.FloatTensor(noise))
     x = model(noise)
-    
+    """
     
     """
     for epoch in range(1):

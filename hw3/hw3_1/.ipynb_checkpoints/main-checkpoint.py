@@ -10,10 +10,10 @@ from dataset import TrainingDataset
 from model import Generator, Discriminator
 from trainer import Trainer
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 
 dataset = TrainingDataset()
-dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
     
 model_G = Generator()
 model_D = Discriminator()
@@ -41,7 +41,7 @@ s = time.time()
 print('Start training...')
 
 EPOCH = 2000
-EPOCH_PER_SAVE = 15
+EPOCH_PER_SAVE = 5
 for epoch in range(EPOCH):
     trainer.train(epoch, not (epoch % EPOCH_PER_SAVE))
 

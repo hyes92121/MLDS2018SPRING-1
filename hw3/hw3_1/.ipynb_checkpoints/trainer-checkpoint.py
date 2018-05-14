@@ -3,6 +3,7 @@ import torch
 from torch.autograd import Variable
 from loss import discriminatorLoss, generatorLoss
 import torch.optim as optim
+from torch.nn.utils import clip_grad_norm
 import time
 
 
@@ -13,6 +14,8 @@ class Trainer(object):
     def __init__(self, model_G, model_D, data_loader):
         super(Trainer, self).__init__()
         self.with_cuda = torch.cuda.is_available()
+        print("modelG has", self.count_parameters(model_G), "parameters...")
+        print("modelD has", self.count_parameters(model_D), "parameters...")
 
         if self.with_cuda:
             self.model_G = model_G.cuda()
@@ -21,8 +24,8 @@ class Trainer(object):
             self.model_G = model_G.cpu()
             self.model_D = model_D.cuda()
         
-        self.optimizer_G = torch.optim.Adam(model_G.parameters(), lr=0.0002, betas=(0.5, 0.999))
-        self.optimizer_D = torch.optim.Adam(model_D.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        self.optimizer_G = torch.optim.Adam(model_G.parameters(), lr=0.0005)
+        self.optimizer_D = torch.optim.SGD(model_D.parameters(), lr=0.002)
 
         self.batch_size = data_loader.batch_size
         self.data_loader = data_loader
@@ -48,7 +51,8 @@ class Trainer(object):
                 self.optimizer_D.zero_grad()
                 if self.with_cuda:
                     real = real.cuda()
-                real = Variable(real)
+                if _ == 0:
+                    real = Variable(real)
                 real_logits = self.model_D(real)
                 
                 noise = Variable(self.random_generator((self.batch_size, 100), True))
@@ -57,6 +61,7 @@ class Trainer(object):
                 
                 d_loss = discriminatorLoss(real_logits, fake_logits)
                 d_loss.backward()
+                #clip_grad_norm(self.model_D.parameters(), 15)
                 self.optimizer_D.step()
                 
             for _ in range(self.G_iteration):
@@ -68,6 +73,7 @@ class Trainer(object):
                 
                 g_loss = generatorLoss(fake_logits)
                 g_loss.backward()
+                #clip_grad_norm(self.model_G.parameters(), 30)
                 self.optimizer_G.step()
             
             
@@ -80,10 +86,10 @@ class Trainer(object):
                     n_batch=len(self.data_loader),
                     d_loss=d_loss.data[0],
                     g_loss=g_loss.data[0],
-                    g_norm=self.get_gradient_norm(self.model_D)
+                    g_normD=self.get_gradient_norm(self.model_D),
+                    g_normG=self.get_gradient_norm(self.model_G)
                 )
                 print('\r', info, end='') # original: end='\r'
-        
         if (saveModel):
             print()
             model_dir = "saved"
@@ -101,8 +107,9 @@ class Trainer(object):
         nb = kwargs.pop("n_batch", None)
         d_loss = kwargs.pop("d_loss", None)
         g_loss = kwargs.pop("g_loss", None)
-        g_norm = kwargs.pop("g_norm", None)
-        info = "Training Epoch: {} [{}/{} ({:.0f}%)]\tLossD: {:.6f} LossG: {:.6f} GradNorm: {:.0f}".format(ep, (bID+1)*bs, tds, 100.*bID/nb, d_loss, g_loss, g_norm)
+        g_normD = kwargs.pop("g_normD", None)
+        g_normG = kwargs.pop("g_normG", None)
+        info = "Training Epoch: {} [{}/{} ({:.0f}%)]\tLossD: {:.6f} LossG: {:.6f} GradNormD: {:.0f} GradNormG: {:.0f}    ".format(ep, (bID+1)*bs, tds, 100.*bID/nb, d_loss, g_loss, g_normD, g_normG)
         return info
     
     def get_gradient_norm(self, net):
@@ -124,6 +131,8 @@ class Trainer(object):
             return ranNbr.cuda()
         else:
             return ranNbr
+    def count_parameters(self, model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 if __name__ == '__main__':
     from dataset import TrainingDataset
