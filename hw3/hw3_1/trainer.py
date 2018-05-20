@@ -24,14 +24,15 @@ class Trainer(object):
             self.model_G = model_G.cpu()
             self.model_D = model_D.cuda()
         
-        self.optimizer_G = torch.optim.Adam(model_G.parameters(), lr=0.0005)
-        self.optimizer_D = torch.optim.SGD(model_D.parameters(), lr=0.002)
+        self.optimizer_G = torch.optim.Adam(model_G.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        self.optimizer_D = torch.optim.Adam(model_D.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        #self.optimizer_D = torch.optim.SGD(model_D.parameters(), lr=0.005)
 
         self.batch_size = data_loader.batch_size
         self.data_loader = data_loader
         
         self.D_iteration = 1
-        self.G_iteration = 1
+        self.G_iteration = 3
         
         self.log_step = 1
 
