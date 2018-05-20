@@ -32,7 +32,7 @@ class Trainer(object):
         self.data_loader = data_loader
         
         self.D_iteration = 1
-        self.G_iteration = 3
+        self.G_iteration = 1
         
         self.log_step = 1
 
@@ -43,6 +43,8 @@ class Trainer(object):
         self.model_G.train()
         self.model_D.train()
         a = time.time()
+        if epoch > 10:
+            self.G_iteration = 2
         
         for batch_idx, real in enumerate(self.data_loader):
             if len(real) != self.batch_size:
@@ -96,7 +98,7 @@ class Trainer(object):
             model_dir = "saved"
             print('Saving model', "{}/epoch{}.pt".format(model_dir, epoch))
             torch.save(self.model_G.state_dict(), "{}/epoch{}_G.pt".format(model_dir, epoch))
-            torch.save(self.model_D.state_dict(), "{}/epoch{}_D.pt".format(model_dir, epoch))
+            #torch.save(self.model_D.state_dict(), "{}/epoch{}_D.pt".format(model_dir, epoch))
         print()
         print("Training time: ", int(time.time()-a), 'seconds/epoch')
     
