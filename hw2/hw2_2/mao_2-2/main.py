@@ -12,9 +12,9 @@ from trainer import Trainer
 
 training_data_path='data/clr_conversation.txt'
 # IMPORTANT: whenever you change Vocabulary() paramaters, you have to retrain_word_vecs
-WORD_VEC_FILE = 'word_vectors_min30.npy'
-# helper = Vocabulary(training_data_path, min_word_count=40, word_vec_dim=100)
-helper = Vocabulary(training_data_path, min_word_count=30, word_vec_dim=200, retrain_word_vecs=True, word_vec_outfile_name=WORD_VEC_FILE)
+WORD_VEC_FILE = 'word_vectors_min30_dim200.npy'
+helper = Vocabulary(training_data_path, min_word_count=40, word_vec_dim=100)
+# helper = Vocabulary(training_data_path, min_word_count=30, word_vec_dim=200, retrain_word_vecs=True, word_vec_outfile_name=WORD_VEC_FILE)
 
 BATCH_SIZE = 80
 dataset = TrainingDataset(training_data_path, helper, train_percentage=0.1)
