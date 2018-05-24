@@ -103,12 +103,76 @@ def collate_fn(data): # data is a torch.Tensor batch returned by DataLoader()
 
 
 
+
+class TestingDataset(Dataset):
+    def __init__(self, testing_data_path, helper, load_into_ram=True):
+        # check if file path exists
+        if not os.path.exists(testing_data_path):
+            raise FileNotFoundError('File path {} does not exist. Error location: {}'.format(testing_data_path, __name__))
+
+        self.data = [] # format: sentence[]
+        self.load_into_ram = load_into_ram # whether to load all training text pairs into RAM
+        self.helper = helper # this is a Vocabulary() class
+
+        print('Parsing testing data to Dataset()...')
+        with open(testing_data_path, 'r') as f:
+            for idx, line in enumerate(f):
+                line_add_tokens = helper.reannotate(line)
+                sentence = helper.sentence2index(line_add_tokens)
+                self.data.append(sentence)
+        print('Finished creating Dataset(), total number of testing examples:', len(self.data))
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        """
+        :returns: (_features, _sentence2index)
+        """
+        assert (idx < self.__len__())
+
+        sentence = self.data[idx]
+
+        if not self.load_into_ram:
+            print('please set load_into_ram to True!')
+        else:
+            return torch.Tensor(sentence)
+
+
+
+def collate_fn_test(data): # data is a torch.Tensor batch returned by DataLoader()
+    """
+    Creates mini-batch tensors from the list of tuples (prev_sentence, curr_sentence).
+
+        Args:
+            data: list (batch_size) of tuple (prev_sentence, curr_sentence).
+                - prev_sentence: torch tensor of shape (1, variable length).
+                - curr_sentence: torch tensor of shape (1, variable length).
+        Returns:
+            padded_prev_sentences: torch tensor of shape (batch_size, pad_length_of_prev_sentences).
+            lengths_prev_sentences: list; valid lengths (non-padded length)
+            padded_curr_sentences: torch tensor of shape (batch_size, pad_length_of_curr_sentences).
+            lengths_curr_sentences: list; valid lengths (non-padded length)
+    """
+    #data.sort(key=lambda x: len(x), reverse=True) 
+
+    # pad input sentences
+    lengths_prev_sentences = [len(sentence) for sentence in data]
+    padded_prev_sentences = torch.zeros(len(data), max(lengths_prev_sentences)).long()
+    for i, sentence in enumerate(data):
+        end = lengths_prev_sentences[i]
+        padded_prev_sentences[i, -end:] = sentence[:end] # here we pad zeros at the BEGINNING of a sentence
+    
+    return padded_prev_sentences
+
+
+
 if __name__ == '__main__':
     import time
     from torch.autograd import Variable
 #     from torch.nn.utils.rnn import pack_padded_sequence
 #     from checkpoint import *
-
+    """
     training_data_path='data/clr_conversation.txt'
 
     helper = Vocabulary(training_data_path)
@@ -148,6 +212,58 @@ if __name__ == '__main__':
             print()
             
             for s in padded_curr_sentences:
+                print(helper.index2sentence(s))
+            print()
+
+#             checkpoint()
+
+            #packed = pack_padded_sequence(input=label, lengths=lengths, batch_first=True)
+            #
+            #print(packed.data)
+            #
+            #checkpoint()
+
+            break
+        e = time.time()
+
+        #print('time for one epoch: {}'.format(e-s))
+
+    ee = time.time()
+
+    #print('total time: {}'.format(ee-ss))
+    """
+    
+    training_data_path='evaluation/test_input.txt'
+
+    helper = Vocabulary(training_data_path)
+
+    dataset = TestingDataset(training_data_path, helper, load_into_ram=True)
+
+    dataloader = DataLoader(dataset, batch_size=30, shuffle=False, num_workers=8, collate_fn=collate_fn_test)
+
+    ss = time.time()
+
+    for epoch in range(1):
+
+        s = time.time()
+
+        print('epoch: {}'.format(epoch+1))
+        for batch_n, batch in enumerate(dataloader):
+
+            #e = time.time()
+
+            #print('batch No.{} time loading batch: {}'.format(batch_n, e-s))
+
+            #s = time.time()
+            print('batch no: {}'.format(batch_n))
+            padded_prev_sentences = batch
+
+            print(padded_prev_sentences)
+            print()
+
+#             checkpoint()
+
+            for s in padded_prev_sentences:
                 print(helper.index2sentence(s))
             print()
 

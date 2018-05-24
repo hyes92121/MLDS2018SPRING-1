@@ -1,0 +1,8 @@
+__pycache__/
+.idea/
+saved/
+data/
+datasets/
+samples/
+test/
+.ipynb_checkpoints/

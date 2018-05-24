@@ -187,6 +187,76 @@ class DecoderRNN(nn.Module):
         seq_predictions = seq_Prob.max(2)[1]
 
         return seq_Prob, seq_predictions
+    
+    # beammmmmm search!
+    def beam_search(self, encoder_last_hidden_state, encoder_output, assumption_seq_len=27):
+        _, batch_size, _ = encoder_last_hidden_state.size()
+        decoder_current_hidden_state = encoder_last_hidden_state # (encoder_num_layers * num_directions, batch, hidden_size)
+        decoder_current_input_word = Variable(torch.ones(batch_size, 1)).long()  #<SOS> (batch x word index)
+        decoder_current_input_word = decoder_current_input_word.cuda() if torch.cuda.is_available() else decoder_current_input_word
+        #seq_Prob_1 = 0
+        #seq_Prob_2 = 0
+        seq_predictions_1 = []
+        seq_predictions_2 = []
+        
+        k = 2
+        
+        current_input_word = self.embedding(decoder_current_input_word)
+        context = self.attention(decoder_current_hidden_state[-1], encoder_output)
+        gru_input = torch.cat([current_input_word.squeeze(1), context], dim=1).unsqueeze(1)
+        gru_output, decoder_current_hidden_state = self.gru(gru_input, decoder_current_hidden_state)
+        prob = self.to_final_output(gru_output.squeeze(1))
+        logprob = F.log_softmax(prob, dim=1)
+        beam_word = logprob.topk(k, dim=1, largest=True, sorted=True)
+        
+            
+        decoder_current_input_word_1 = beam_word[1][0][0].clone()
+        decoder_current_input_word_2 = beam_word[1][0][1].clone()
+        decoder_current_hidden_state_1 = decoder_current_hidden_state.clone()
+        decoder_current_hidden_state_2 = decoder_current_hidden_state.clone()
+        
+        seq_predictions_1 = (decoder_current_input_word_1)
+        seq_predictions_2 = (decoder_current_input_word_2)
+        
+        #print(seq_predictions_1)
+        #print(seq_predictions_2)
+        
+        seq_Prob_1 = beam_word[0][0][0].clone()
+        seq_Prob_2 = beam_word[0][0][1].clone()
+        #print(seq_Prob_1)
+        #print(seq_Prob_2)
+        
+        
+        for i in range(assumption_seq_len-1): # run for fixed amount of time steps
+
+            current_input_word_1 = self.embedding(decoder_current_input_word_1)
+            current_input_word_2 = self.embedding(decoder_current_input_word_2)
+
+            context_1 = self.attention(decoder_current_hidden_state_1[-1], encoder_output)
+            context_2 = self.attention(decoder_current_hidden_state_2[-1], encoder_output)
+
+            gru_input_1 = torch.cat([current_input_word_1.squeeze(1), context], dim=1).unsqueeze(1)
+            gru_input_2 = torch.cat([current_input_word_2.squeeze(1), context], dim=1).unsqueeze(1)
+
+            gru_output_1, decoder_current_hidden_state_1 = self.gru(gru_input_1, decoder_current_hidden_state_1)
+            gru_output_2, decoder_current_hidden_state_2 = self.gru(gru_input_2, decoder_current_hidden_state_2)
+
+            prob_1 = self.to_final_output(gru_output_1.squeeze(1))
+            prob_2 = self.to_final_output(gru_output_2.squeeze(1))
+
+            logprob_1 = F.log_softmax(prob_1, dim=1)
+            logprob_2 = F.log_softmax(prob_2, dim=1)
+            
+            decoder_current_input_word_1 = logprob_1.max(1)[1]
+            decoder_current_input_word_2 = logprob_2.max(1)[1]
+            
+            seq_predictions_1 = torch.cat((seq_predictions_1, decoder_current_input_word_1), dim=0)
+            seq_predictions_2 = torch.cat((seq_predictions_2, decoder_current_input_word_2), dim=0)
+            
+            #print(seq_predictions_1)
+            #print(seq_predictions_2)
+        
+        return seq_predictions_1, seq_predictions_2
 
 
     def _get_teacher_learning_ratio(self, training_steps): # TODO: change scheduled sampling scheme
@@ -230,7 +300,13 @@ class VideoCaptionGenerator(nn.Module):
                 encoder_last_hidden_state= last_time_step_all_layers_output,
                 encoder_output= top_layer_output,
             )
-
+        
+        elif mode == 'beam_search':
+            seq_Prob, seq_predictions = self.decoder.beam_search(
+                encoder_last_hidden_state= last_time_step_all_layers_output,
+                encoder_output= top_layer_output,
+            )
+        
         else:
             raise KeyError('mode is not valid')
 

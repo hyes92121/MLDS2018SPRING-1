@@ -1,1 +1,7 @@
 *.gdoc
+.DS*
+__pycache__
+Icon*
+logs
+test.txt
+caleb_2-1
