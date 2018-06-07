@@ -134,6 +134,7 @@ class Trainer(object):
             return ranNbr.cuda()
         else:
             return ranNbr
+                                 
     def count_parameters(self, model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 

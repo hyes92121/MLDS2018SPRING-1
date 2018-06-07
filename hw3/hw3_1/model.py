@@ -57,26 +57,33 @@ class Discriminator(nn.Module):
 
 
 if __name__ == '__main__':
+    '''
     from dataset import TrainingDataset
     from torch.autograd import Variable
     from torch.utils.data import DataLoader
     import numpy as np
     import torch
+    from torchsummary import summary
     
     #dataset = TrainingDataset()
     #dataloader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8)
-    """
+    
     model = Generator()
-    noise = np.random.normal(0, 1, (1, 100))
-    noise = Variable(torch.FloatTensor(noise))
-    x = model(noise)
+    #noise = np.random.normal(0, 1, (1, 100))
+    #noise = Variable(torch.FloatTensor(noise))
+    #x = model(noise)
+    if torch.cuda.is_available():
+        model.cuda()
+    summary(model, input_size=(100, 1, 1))
     """
     model = Discriminator()
-    noise = np.random.normal(0, 1, (30, 3, 64, 64))
-    noise = Variable(torch.FloatTensor(noise))
-    x = model(noise)
-    
-    
+    #noise = np.random.normal(0, 1, (30, 3, 64, 64))
+    #noise = Variable(torch.FloatTensor(noise))
+    #x = model(noise)
+    if torch.cuda.is_available():
+        model.cuda()
+    summary(model, input_size=(3, 64, 64))
+    """
     """
     for epoch in range(1):
         for batch_n, batch in enumerate(dataloader):
@@ -84,4 +91,5 @@ if __name__ == '__main__':
             x = model(batch)
             break
     """
+    '''
     
