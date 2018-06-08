@@ -12,28 +12,30 @@ from model import CGAN
 
 torch.manual_seed(222222)
 
+import matplotlib
+matplotlib.use('Agg')
+
 
 def save_imgs(img):
-    import matplotlib.pyplot as plt
-	plt.use('Agg')
-    if not os.path.exists('samples'):
-    	os.mkdir('samples')
+	import matplotlib.pyplot as plt
+	if not os.path.exists('samples'):
+		os.mkdir('samples')
 
-    r, c = 5, 5
-    noise = np.random.normal(0, 1, (r * c, 100))
-    # gen_imgs should be shape (25, 64, 64, 3)
-    #gen_imgs = generator.predict(noise)
-    gen_imgs = img
+	r, c = 5, 5
+	noise = np.random.normal(0, 1, (r * c, 100))
+	# gen_imgs should be shape (25, 64, 64, 3)
+	#gen_imgs = generator.predict(noise)
+	gen_imgs = img
 
-    fig, axs = plt.subplots(r, c)
-    cnt = 0
-    for i in range(r):
-        for j in range(c):
-            axs[i,j].imshow(gen_imgs[cnt, :,:,:])
-            axs[i,j].axis('off')
-            cnt += 1
-    fig.savefig("samples/cgan.png")
-    plt.close()
+	fig, axs = plt.subplots(r, c)
+	cnt = 0
+	for i in range(r):
+	    for j in range(c):
+	        axs[i,j].imshow(gen_imgs[cnt, :,:,:])
+	        axs[i,j].axis('off')
+	        cnt += 1
+	fig.savefig("samples/cgan.png")
+	plt.close()
 
 
 def cvt_output(model_output):
