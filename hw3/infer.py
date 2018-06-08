@@ -15,6 +15,7 @@ torch.manual_seed(222222)
 
 def save_imgs(img):
     import matplotlib.pyplot as plt
+	plt.use('Agg')
     if not os.path.exists('samples'):
     	os.mkdir('samples')
 
