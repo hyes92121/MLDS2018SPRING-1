@@ -25,7 +25,7 @@ def prepro(data,image_size=(80,80)):
     return image
 
 class Policy(torch.nn.Module):
-    def __init__(self, gamma=0.99, lr=1e-4, rmsprop_decay=0.99):
+    def __init__(self, gamma=0.99, lr=1e-2, rmsprop_decay=0.99, random_action_episodes=10):
         super(Policy, self).__init__()
 
         # ========== CONVNET ==========
@@ -44,7 +44,7 @@ class Policy(torch.nn.Module):
         self.gamma = gamma
         self.lr = lr
         self.rmsprop_decay = rmsprop_decay
-        self.random_action_episodes = 0
+        self.random_action_episodes = random_action_episodes
         
         self.output2action = {0: 0, 1: 2, 2: 3}
         self.saved_log_probs = []
@@ -58,12 +58,12 @@ class Policy(torch.nn.Module):
         #     x = x.cuda()
         # x = self.conv1(x)
         # x = self.conv2(x)
-        # x = torch.nn.functional.selu(x)
+        # x = torch.nn.functional.relu(x)
         # x = x.view(-1, 32*76*76)
         # x = self.fc1(x) # TODO: add batch norm?
-        # x = torch.nn.functional.selu(x)
+        # x = torch.nn.functional.relu(x)
         # x = self.fc2(x)
-        # x = torch.nn.functional.selu(x)
+        # x = torch.nn.functional.relu(x)
         # x = self.fc3(x)
         # ========== CONVNET ==========
 
@@ -72,11 +72,10 @@ class Policy(torch.nn.Module):
              x = x.cuda()
         x = x.view(-1, 80*80)
         x = self.fc4(x) # TODO: add batch norm?
-        x = torch.nn.functional.selu(x)
+        # x = torch.nn.functional.relu(x)
         x = self.fc5(x)
-        x = torch.nn.functional.selu(x)
+        # x = torch.nn.functional.relu(x)
         x = self.fc6(x)
-
 
         action_probs = torch.nn.functional.softmax(x, dim=1)
         return action_probs # (batch_size, 6)
@@ -188,6 +187,7 @@ class Agent_PG(Agent):
                 # R = r + R
                 rewards.insert(0, R)
             rewards = torch.Tensor(rewards)
+            rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-10)
 
             writer.add_scalar('./{}/reward'.format(timestamp), R, i_episode+1)
             json_log_dir = './{}'.format(timestamp) # NOTE: this part should be outside for loop, but here is convenient for debugging
@@ -200,11 +200,13 @@ class Agent_PG(Agent):
             for log_prob, reward in zip(policy.saved_log_probs, rewards):
                 single_loss = -log_prob * reward
                 single_loss.backward()
-                print('GRADIENTS [2]:')
-                for idx, param in enumerate(policy.parameters()):
-                    if idx == 2:
-                        print(param.grad)
-                        break
+            
+
+            print('GRADIENTS [2]:')
+            for idx, param in enumerate(policy.parameters()):
+                if idx == 2:
+                    print(param.grad)
+                    break
 
             # policy_loss = torch.cat(policy_loss).sum() # NOTE: doing this causes serious OOM errors
             # print('Doing backprop into policy...')
