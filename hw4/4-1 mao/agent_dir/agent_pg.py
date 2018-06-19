@@ -1,10 +1,10 @@
-import scipy, torch, cv2, time, os, random
+import scipy, torch, cv2, time, os, random, json
 import numpy as np
 import matplotlib.pyplot as plt
 from agent_dir.agent import Agent
 from torch.autograd import Variable
 
-def prepro(data,image_size=(80,80)):
+def prepro(I,image_size=(80,80)):
     """
     Call this function to preprocess RGB image to grayscale image if necessary
     This preprocessing code is from
@@ -17,15 +17,24 @@ def prepro(data,image_size=(80,80)):
         Grayscale image, shape: (80, 80)
     
     """
-    image = 0.2126 * data[:, :, 0] + 0.7152 * data[:, :, 1] + 0.0722 * data[:, :, 2] # grayscale
-    image = image[30:,:] # remove scoreboard
-    image = cv2.resize(image, dsize=image_size, interpolation=cv2.INTER_CUBIC) # resize to (80, 80)
-    image = np.expand_dims(image, axis=0) # (1, 80, 80)
-    # print('IMAGE SHAPE', image.shape)
-    return image
+    # image = 0.2126 * data[:, :, 0] + 0.7152 * data[:, :, 1] + 0.0722 * data[:, :, 2] # grayscale
+    # image = image[30:,:] # remove scoreboard
+    # image = cv2.resize(image, dsize=image_size, interpolation=cv2.INTER_CUBIC) # resize to (80, 80)
+    # image = np.expand_dims(image, axis=0) # (1, 80, 80)
+    # # print('IMAGE SHAPE', image.shape)
+    # return image
+
+    I = I[35:195]
+    I = I[::2, ::2, 0]
+    I[I == 144] = 0
+    I[I == 109] = 0
+    I[I != 0 ] = 1
+    return I.astype(np.float).ravel()
+
+torch.manual_seed(87)
 
 class Policy(torch.nn.Module):
-    def __init__(self, gamma=0.99, lr=1e-2, rmsprop_decay=0.99, random_action_episodes=10):
+    def __init__(self, gamma=0.99, lr=1e-4, rmsprop_decay=0.99, random_action_episodes=0):
         super(Policy, self).__init__()
 
         # ========== CONVNET ==========
@@ -46,7 +55,7 @@ class Policy(torch.nn.Module):
         self.rmsprop_decay = rmsprop_decay
         self.random_action_episodes = random_action_episodes
         
-        self.output2action = {0: 0, 1: 2, 2: 3}
+        self.output2action = {0: 1, 1: 2, 2: 3}
         self.saved_log_probs = []
         self.rewards = []
         
@@ -67,17 +76,14 @@ class Policy(torch.nn.Module):
         # x = self.fc3(x)
         # ========== CONVNET ==========
 
-        x = Variable(torch.Tensor(x))
-        if torch.cuda.is_available():
-             x = x.cuda()
-        x = x.view(-1, 80*80)
-        x = self.fc4(x) # TODO: add batch norm?
-        # x = torch.nn.functional.relu(x)
-        x = self.fc5(x)
-        # x = torch.nn.functional.relu(x)
-        x = self.fc6(x)
+        y = x.view(-1, 80*80)
+        y = self.fc4(y) # TODO: add batch norm?
+        y = torch.nn.functional.selu(y)
+        y = self.fc5(y)
+        y = torch.nn.functional.selu(y)
+        y = self.fc6(y)
 
-        action_probs = torch.nn.functional.softmax(x, dim=1)
+        action_probs = torch.nn.functional.softmax(y, dim=1)
         return action_probs # (batch_size, 6)
 
     def reset(self):
@@ -124,7 +130,6 @@ class Agent_PG(Agent):
         # YOUR CODE HERE #
         ##################
         from tensorboardX import SummaryWriter
-        writer = SummaryWriter()
 
         policy = Policy()
         policy.train()
@@ -135,19 +140,34 @@ class Agent_PG(Agent):
             print('Not using CUDA')
         
         optimizer = torch.optim.RMSprop(policy.parameters(), lr=policy.lr, weight_decay=policy.rmsprop_decay)
-        optimizer_random_action = torch.optim.RMSprop(policy.parameters(), lr=policy.lr/1e4, weight_decay=policy.rmsprop_decay)
-        
+        # optimizer_random_action = torch.optim.RMSprop(policy.parameters(), lr=policy.lr/1e4, weight_decay=policy.rmsprop_decay)
+        writer = SummaryWriter()
         for i_episode in range(100000): # 21 points/reward per episode, ~6000 episodes to reach baseline?
             policy.reset()
+            # if i_episode < policy.random_action_episodes:
+            #     optimizer_random_action.zero_grad()
+            # else:
+            #     optimizer.zero_grad()
+            optimizer.zero_grad()
+
             observation = self.env.reset()
+
             a = time.time()
+
             for t in range(10000): # usually done in around 1000 steps
                 if render:
                     self.env.env.render()
 
-                observation = prepro(observation) # (1, 80, 80)
+                observation = prepro(observation)
+
+                observation = torch.from_numpy(observation).float().unsqueeze(0)
+                observation = Variable(observation)
+                if torch.cuda.is_available():
+                     observation = observation.cuda()
                 action_probs = policy(observation) # (batch_size, 3)
-                action_sampler = torch.distributions.Categorical(action_probs[0])
+                # print('ACTION_PROBS:', action_probs)
+
+                action_sampler = torch.distributions.Categorical(action_probs)
                 # action = int(torch.max(policy_output, dim=1)[1].data) # torch.max returns (max val, argmax)
                 if i_episode < policy.random_action_episodes and random.random() < 0.9: # first N episodes: prob of selecting random action
                     action_pre = Variable(torch.LongTensor(random.sample({0,1,2}, 1)))
@@ -155,7 +175,6 @@ class Agent_PG(Agent):
                         action_pre = action_pre.cuda()
                     # print('RANDOM ACTION:', action_pre)
                 else:
-                    # print('ACTION_PROBS', action_probs)
                     action_pre = action_sampler.sample() # NOTE: taking subset of env's action space, need to convert
                     # print('POLICY ACTION:', action_pre)
                 policy.saved_log_probs.append(action_sampler.log_prob(action_pre))
@@ -179,52 +198,57 @@ class Agent_PG(Agent):
                 print('Terminated episode after running for 10000 steps')
 
             R = 0
-            # policy_loss = []
+            R_raw = 0
+            policy_loss = []
             rewards = []
             print('Calculating rewards and loss function values...')
             for r in policy.rewards[::-1]:
                 R = r + policy.gamma * R
-                # R = r + R
+                R_raw = r + R_raw
                 rewards.insert(0, R)
             rewards = torch.Tensor(rewards)
             rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-10)
 
             writer.add_scalar('./{}/reward'.format(timestamp), R, i_episode+1)
+            writer.add_scalar('./{}/reward_raw'.format(timestamp), R_raw, i_episode+1)
+            
             json_log_dir = './{}'.format(timestamp) # NOTE: this part should be outside for loop, but here is convenient for debugging
             if not os.path.exists(json_log_dir):
                 os.makedirs(json_log_dir)
-            writer.export_scalars_to_json("{}/{}-reward.json".format(json_log_dir, i_episode+1))
-            # rewards = (rewards - rewards.mean()) / (rewards.std() + eps)
+            json_data = {'reward': R, 'reward_raw': R_raw}
+            with open("{}/{}-reward.json".format(json_log_dir, i_episode+1), 'w') as outfile:
+                json.dump(json_data, outfile, sort_keys=True, indent=4)
 
-            print('Doing backprops (one at a time) into policy...')
+            # print('Doing backprops (one at a time) into policy...')
             for log_prob, reward in zip(policy.saved_log_probs, rewards):
+                # policy_loss.append(-log_prob * reward)
                 single_loss = -log_prob * reward
                 single_loss.backward()
-            
+        
+            # policy_loss = torch.cat(policy_loss).sum() # NOTE: doing this may cause OOM on GPU
+            # print('Doing all backprops...')
+            # policy_loss.backward()
 
-            print('GRADIENTS [2]:')
             for idx, param in enumerate(policy.parameters()):
+                if idx == 0:
+                    print('GRADIENTS [0]:')
+                    print(param.grad)
                 if idx == 2:
+                    print('GRADIENTS [2]:')
                     print(param.grad)
                     break
 
-            # policy_loss = torch.cat(policy_loss).sum() # NOTE: doing this causes serious OOM errors
-            # print('Doing backprop into policy...')
-            # policy_loss.backward()
+            # if i_episode < policy.random_action_episodes:
+            #     optimizer_random_action.step()
+            # else:
+            #     optimizer.step()
+            optimizer.step()
 
-            # print('GRADIENTS:')
-            # for param in policy.parameters():
-            #     print(param.grad)
-
-            if i_episode < policy.random_action_episodes:
-                optimizer_random_action.step()
-                optimizer_random_action.zero_grad()
-            else:
-                optimizer.step()
-                optimizer.zero_grad()
+            del policy.rewards[:]
+            del policy.saved_log_probs[:]
             
 
-            print('[Episode {}: {} minutes] Reward is {}'.format(i_episode+1, (time.time()-a)/60, R))
+            print('[Episode {}: {} minutes] Reward is {}    Reward_raw is {}'.format(i_episode+1, (time.time()-a)/60, R, R_raw))
             
             if i_episode+1 % 200 == 1:
                 model_dir = './models/{}'.format(timestamp)
