@@ -31,7 +31,10 @@ def prepro(I,image_size=(80,80)):
     I[I != 0 ] = 1
     return I.astype(np.float).ravel()
 
-torch.manual_seed(87)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(87)
+else:
+    torch.manual_seed(87)
 
 class Policy(torch.nn.Module):
     def __init__(self, gamma=0.99, lr=1e-4, rmsprop_decay=0.99, random_action_episodes=0):
