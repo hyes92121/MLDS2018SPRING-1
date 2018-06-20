@@ -145,7 +145,7 @@ class Agent_PG(Agent):
         optimizer = torch.optim.RMSprop(policy.parameters(), lr=policy.lr, weight_decay=policy.rmsprop_decay)
         # optimizer_random_action = torch.optim.RMSprop(policy.parameters(), lr=policy.lr/1e4, weight_decay=policy.rmsprop_decay)
         writer = SummaryWriter()
-        for i_episode in range(100000): # 21 points/reward per episode, ~6000 episodes to reach baseline?
+        for i_episode in range(10**7): # 21 points/reward per episode, ~6000 episodes to reach baseline?
             policy.reset()
             # if i_episode < policy.random_action_episodes:
             #     optimizer_random_action.zero_grad()
