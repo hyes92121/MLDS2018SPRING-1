@@ -46,12 +46,12 @@ class Policy(torch.nn.Module):
         # self.fc1 = torch.nn.Linear(32 * 76 * 76, 64)
         # self.fc2 = torch.nn.Linear(64, 32)
         # self.fc3 = torch.nn.Linear(32, 3) # 6 actions to choose from, only taking 3 here
-        # known actions: 0(no move), 2(up), 3(down)
+        # known actions: 1(no move), 2(up), 3(down)
         # ========== CONVNET ==========
 
         self.fc4 = torch.nn.Linear(80*80, 256)
         self.fc5 = torch.nn.Linear(256, 256)
-        self.fc6 = torch.nn.Linear(256, 3)
+        self.fc6 = torch.nn.Linear(256, 3) # known actions: 1(no move), 2(up), 3(down)
 
         self.gamma = gamma
         self.lr = lr
@@ -153,21 +153,23 @@ class Agent_PG(Agent):
             #     optimizer.zero_grad()
             optimizer.zero_grad()
 
-            observation = self.env.reset()
+            observation_old = prepro(self.env.reset()) # NOTE: observation_old is always prepro()
+            observation = self.env.reset() # NOTE: observation is always "raw"
 
             a = time.time()
-
             for t in range(10000): # usually done in around 1000 steps
                 if render:
                     self.env.env.render()
 
                 observation = prepro(observation)
+                observation_delta = observation - observation_old
+                observation_old = observation # NOTE: overwrite observation_old
 
-                observation = torch.from_numpy(observation).float().unsqueeze(0)
-                observation = Variable(observation)
+                observation_delta = torch.from_numpy(observation_delta).float().unsqueeze(0)
+                observation_delta = Variable(observation_delta)
                 if torch.cuda.is_available():
-                     observation = observation.cuda()
-                action_probs = policy(observation) # (batch_size, 3)
+                     observation_delta = observation_delta.cuda()
+                action_probs = policy(observation_delta) # (batch_size, 3)
                 # print('ACTION_PROBS:', action_probs)
 
                 action_sampler = torch.distributions.Categorical(action_probs)
@@ -183,7 +185,7 @@ class Agent_PG(Agent):
                 policy.saved_log_probs.append(action_sampler.log_prob(action_pre))
 
                 action_real = policy.output2action[int(action_pre)] # NOTE: converting to env's action space
-                observation, reward, done, info = self.env.step(action_real)
+                observation, reward, done, info = self.env.step(action_real) # NOTE: overwrite observation
                 policy.rewards.append(reward)
 
                 if torch.cuda.is_available():
