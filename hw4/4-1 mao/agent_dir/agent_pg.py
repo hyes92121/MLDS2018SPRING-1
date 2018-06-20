@@ -255,12 +255,14 @@ class Agent_PG(Agent):
 
             print('[Episode {}: {} minutes] Reward is {}    Reward_raw is {}'.format(i_episode+1, (time.time()-a)/60, R, R_raw))
             
-            if i_episode+1 % 200 == 1:
+            if (i_episode+1) % 200 == 0:
                 model_dir = './models/{}'.format(timestamp)
                 if not os.path.exists(model_dir):
                     os.makedirs(model_dir)
                 torch.save(policy.state_dict(), '{}/episode{}.pth'.format(model_dir, i_episode+1))
                 print('Saved model!')
+
+            print('======================')
 
 
     def make_action(self, observation, test=True): # used during test time
