@@ -29,7 +29,7 @@ def prepro(I,image_size=(80,80)):
     I[I == 144] = 0
     I[I == 109] = 0
     I[I != 0 ] = 1
-    return I.astype(np.float).ravel()
+    return np.expand_dims(I.astype(np.float), axis=0) # (1, 80, 80)
 
 if torch.cuda.is_available():
     torch.cuda.manual_seed(87)
@@ -41,17 +41,13 @@ class Policy(torch.nn.Module):
         super(Policy, self).__init__()
 
         # ========== CONVNET ==========
-        # self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3) # (batch_size, 16, 208, 158)
-        # self.conv2 = torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3) # (batch_size, 32, 206, 156)
-        # self.fc1 = torch.nn.Linear(32 * 76 * 76, 64)
-        # self.fc2 = torch.nn.Linear(64, 32)
-        # self.fc3 = torch.nn.Linear(32, 3) # 6 actions to choose from, only taking 3 here
+        self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3) # (batch_size, 16, 208, 158)
+        self.conv2 = torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3) # (batch_size, 32, 206, 156)
+        self.fc1 = torch.nn.Linear(32 * 76 * 76, 64)
+        self.fc2 = torch.nn.Linear(64, 32)
+        self.fc3 = torch.nn.Linear(32, 3) # 6 actions to choose from, only taking 3 here
         # known actions: 1(no move), 2(up), 3(down)
         # ========== CONVNET ==========
-
-        self.fc4 = torch.nn.Linear(80*80, 256)
-        self.fc5 = torch.nn.Linear(256, 256)
-        self.fc6 = torch.nn.Linear(256, 3) # known actions: 1(no move), 2(up), 3(down)
 
         self.gamma = gamma
         self.lr = lr
@@ -64,29 +60,18 @@ class Policy(torch.nn.Module):
         
     def forward(self, x): # x: np.array (1, 80, 80)
         # ========== CONVNET ==========
-        # x = x.reshape(-1, 1, 80, 80) # (batch_size, channels, ...)
-        # x = Variable(torch.Tensor(x))
-        # if torch.cuda.is_available():
-        #     x = x.cuda()
-        # x = self.conv1(x)
-        # x = self.conv2(x)
-        # x = torch.nn.functional.relu(x)
-        # x = x.view(-1, 32*76*76)
-        # x = self.fc1(x) # TODO: add batch norm?
-        # x = torch.nn.functional.relu(x)
-        # x = self.fc2(x)
-        # x = torch.nn.functional.relu(x)
-        # x = self.fc3(x)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = torch.nn.functional.selu(x)
+        x = x.view(-1, 32*76*76)
+        x = self.fc1(x) # TODO: add batch norm?
+        x = torch.nn.functional.selu(x)
+        x = self.fc2(x)
+        x = torch.nn.functional.selu(x)
+        x = self.fc3(x)
         # ========== CONVNET ==========
 
-        y = x.view(-1, 80*80)
-        y = self.fc4(y) # TODO: add batch norm?
-        y = torch.nn.functional.selu(y)
-        y = self.fc5(y)
-        y = torch.nn.functional.selu(y)
-        y = self.fc6(y)
-
-        action_probs = torch.nn.functional.softmax(y, dim=1)
+        action_probs = torch.nn.functional.softmax(x, dim=1)
         return action_probs # (batch_size, 6)
 
     def reset(self):
@@ -157,7 +142,7 @@ class Agent_PG(Agent):
             observation = self.env.reset() # NOTE: observation is always "raw"
 
             a = time.time()
-            for t in range(10000): # usually done in around 1000 steps
+            for t in range(20000): # in the beginning, usually done in around 1000 steps
                 if render:
                     self.env.env.render()
 
@@ -165,7 +150,7 @@ class Agent_PG(Agent):
                 observation_delta = observation - observation_old
                 observation_old = observation # NOTE: overwrite observation_old
 
-                observation_delta = torch.from_numpy(observation_delta).float().unsqueeze(0)
+                observation_delta = torch.from_numpy(observation_delta).float().unsqueeze(0) # (1 (batch_size) ,1 (channel) , 80, 80)
                 observation_delta = Variable(observation_delta)
                 if torch.cuda.is_available():
                      observation_delta = observation_delta.cuda()
@@ -235,12 +220,15 @@ class Agent_PG(Agent):
             # policy_loss.backward()
 
             for idx, param in enumerate(policy.parameters()):
-                if idx == 0:
+                if idx == 0: # (16, 1, 3, 3)
                     print('GRADIENTS [0]:')
-                    print(param.grad)
-                if idx == 2:
+                    print(param.grad[0][0])
+                    print(param.grad[8][0])
+                if idx == 2: # (32, 16, 3, 3)
                     print('GRADIENTS [2]:')
-                    print(param.grad)
+                    # print(param.grad.shape)
+                    print(param.grad[0][0])
+                    print(param.grad[16][0])
                     break
 
             # if i_episode < policy.random_action_episodes:
