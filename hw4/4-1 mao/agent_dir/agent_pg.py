@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from agent_dir.agent import Agent
 from torch.autograd import Variable
 
-def prepro(I,image_size=(80,80)):
+def prepro(I):
     """
     Call this function to preprocess RGB image to grayscale image if necessary
     This preprocessing code is from
@@ -41,11 +41,11 @@ class Policy(torch.nn.Module):
         super(Policy, self).__init__()
 
         # ========== CONVNET ==========
-        self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3) # (batch_size, 16, 208, 158)
-        self.conv2 = torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3) # (batch_size, 32, 206, 156)
-        self.fc1 = torch.nn.Linear(32 * 76 * 76, 64)
-        self.fc2 = torch.nn.Linear(64, 32)
-        self.fc3 = torch.nn.Linear(32, 3) # 6 actions to choose from, only taking 3 here
+        self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=8, kernel_size=8, stride=8) # (batch_size, 16, 208, 158)
+        # self.conv2 = torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3) # (batch_size, 32, 206, 156)
+        self.fc1 = torch.nn.Linear(8 * 10 * 10, 64)
+        # self.fc2 = torch.nn.Linear(256, 256)
+        self.fc3 = torch.nn.Linear(64, 3) # 6 actions to choose from, only taking 3 here
         # known actions: 1(no move), 2(up), 3(down)
         # ========== CONVNET ==========
 
@@ -61,13 +61,13 @@ class Policy(torch.nn.Module):
     def forward(self, x): # x: np.array (1, 80, 80)
         # ========== CONVNET ==========
         x = self.conv1(x)
-        x = self.conv2(x)
+        # x = self.conv2(x)
         x = torch.nn.functional.selu(x)
-        x = x.view(-1, 32*76*76)
-        x = self.fc1(x) # TODO: add batch norm?
+        x = x.view(-1, 8*10*10)
+        x = self.fc1(x) # NOTE: cannot add batch norm here (if there is no replay buffer); batch is 1
         x = torch.nn.functional.selu(x)
-        x = self.fc2(x)
-        x = torch.nn.functional.selu(x)
+        # x = self.fc2(x)
+        # x = torch.nn.functional.selu(x)
         x = self.fc3(x)
         # ========== CONVNET ==========
 
@@ -220,15 +220,14 @@ class Agent_PG(Agent):
             # policy_loss.backward()
 
             for idx, param in enumerate(policy.parameters()):
-                if idx == 0: # (16, 1, 3, 3)
+                if idx == 0: # (8, 1, 8, 8)
                     print('GRADIENTS [0]:')
-                    print(param.grad[0][0])
-                    print(param.grad[8][0])
-                if idx == 2: # (32, 16, 3, 3)
-                    print('GRADIENTS [2]:')
                     # print(param.grad.shape)
                     print(param.grad[0][0])
-                    print(param.grad[16][0])
+                if idx == 2: # (64,800)
+                    print('GRADIENTS [2]:')
+                    # print(param.grad.shape)
+                    print(param.grad)
                     break
 
             # if i_episode < policy.random_action_episodes:
