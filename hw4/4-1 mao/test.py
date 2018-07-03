@@ -6,6 +6,7 @@ You DO NOT need to upload this file
 """
 
 import argparse
+import os, json # TODO: remove this
 import numpy as np
 from environment import Environment
 
@@ -35,13 +36,24 @@ def test(agent, env, total_episodes=30):
 
         #playing one game
         while(not done):
+            # env.env.render() # TODO: REMOVE THIS LINE
             action = agent.make_action(state, test=True)
             state, reward, done, info = env.step(action)
             episode_reward += reward
 
         rewards.append(episode_reward)
+        print('episode_reward:', episode_reward) # TODO: REMOVE THIS LINE
     print('Run %d episodes'%(total_episodes))
     print('Mean:', np.mean(rewards))
+
+    # TODO: REMOVE THESE LINES
+    # json_log_dir = './model_test_logs' # NOTE: this part should be outside for loop, but here is convenient for debugging
+    # if not os.path.exists(json_log_dir):
+    #     os.makedirs(json_log_dir)
+    # json_data = {'reward_mean': np.mean(rewards)}
+    # with open("{}/{}-reward_mean.json".format(json_log_dir, agent.time_step), 'w') as outfile:
+    #     json.dump(json_data, outfile, sort_keys=True, indent=4)
+    # TODO: REMOVE THESE LINES
 
 
 def run(args):
