@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from torch.autograd import Variable
-from model import Generator
+from models import Generator
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
