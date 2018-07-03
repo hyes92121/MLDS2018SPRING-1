@@ -51,13 +51,13 @@ class Policy(torch.nn.Module):
 
         self.fc4 = torch.nn.Linear(80*80, 256)
         self.fc5 = torch.nn.Linear(256, 256)
-        self.fc6 = torch.nn.Linear(256, 2) # known actions: 1(no move), 2(up), 3(down)
+        self.fc6 = torch.nn.Linear(256, 3) # known actions: 1(no move), 2(up), 3(down)
 
         self.gamma = gamma
         self.lr = lr
         self.rmsprop_decay = rmsprop_decay
         
-        self.output2action = {0: 2, 1: 3}
+        self.output2action = {0: 1, 1: 2, 2: 3}
         self.saved_log_probs = []
         self.rewards = []
         
@@ -117,7 +117,7 @@ class Agent_PG(Agent):
                 self.loaded_model = loaded_model.cuda()
             else:
                 loaded_model.load_state_dict(torch.load(self.saved_model_path, map_location=lambda storage, loc: storage))
-                self.loaded_model = loaded_model            
+                self.loaded_model = loaded_model
 
         ##################
         # YOUR CODE HERE #
@@ -148,6 +148,14 @@ class Agent_PG(Agent):
         from tensorboardX import SummaryWriter
 
         policy = Policy()
+
+        if checkpoint: # Resume training from previously saved model params
+            print('Resuming training from', checkpoint)
+            if torch.cuda.is_available():
+                policy.load_state_dict(torch.load(checkpoint))
+            else:
+                policy.load_state_dict(torch.load(checkpoint, map_location=lambda storage, loc: storage))
+
         policy.train()
         if torch.cuda.is_available():
             print('Using CUDA')
@@ -215,8 +223,6 @@ class Agent_PG(Agent):
             rewards = []
             print('Calculating rewards and loss function values...')
             for r in policy.rewards[::-1]:
-                if r == 1 or r == -1:
-                    R = 0
                 R = r + policy.gamma * R
                 R_raw = r + R_raw
                 rewards.insert(0, R)
@@ -234,18 +240,18 @@ class Agent_PG(Agent):
                 json.dump(json_data, outfile, sort_keys=True, indent=4)
 
             # ========== ORIGINAL VERSION ========== 
-            # for log_prob, reward in zip(policy.saved_log_probs, rewards):
-            #     # policy_loss.append(-log_prob * reward)
-            #     single_loss = -log_prob * reward
-            #     single_loss.backward()
+            for log_prob, reward in zip(policy.saved_log_probs, rewards):
+                # policy_loss.append(-log_prob * reward)
+                single_loss = -log_prob * reward
+                single_loss.backward()
             # ========== ORIGINAL VERSION ========== 
 
 
             # ========== VANILLA VERSION ========== 
-            for log_prob in policy.saved_log_probs:
-                # policy_loss.append(-log_prob * reward)
-                single_loss = -log_prob * R_raw
-                single_loss.backward()
+            # for log_prob in policy.saved_log_probs:
+            #     # policy_loss.append(-log_prob * reward)
+            #     single_loss = -log_prob * R_raw
+            #     single_loss.backward()
             # ========== VANILLA VERSION ========== 
         
 
