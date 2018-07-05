@@ -51,13 +51,13 @@ class Policy(torch.nn.Module):
 
         self.fc4 = torch.nn.Linear(80*80, 256)
         self.fc5 = torch.nn.Linear(256, 256)
-        self.fc6 = torch.nn.Linear(256, 2) # known actions: 1(no move), 2(up), 3(down)
+        self.fc6 = torch.nn.Linear(256, 3) # known actions: 1(no move), 2(up), 3(down)
 
         self.gamma = gamma
         self.lr = lr
         self.rmsprop_decay = rmsprop_decay
         
-        self.output2action = {0: 2, 1: 3}
+        self.output2action = {0: 1, 1: 2, 2: 3}
         self.saved_log_probs = []
         self.rewards = []
         
@@ -223,8 +223,8 @@ class Agent_PG(Agent):
             rewards = []
             print('Calculating rewards and loss function values...')
             for r in policy.rewards[::-1]:
-                if r == 1 or r == -1:
-                    R = 0
+                # if r == 1 or r == -1:
+                #     R = 0
                 R = r + policy.gamma * R
                 R_raw = r + R_raw
                 rewards.insert(0, R)
